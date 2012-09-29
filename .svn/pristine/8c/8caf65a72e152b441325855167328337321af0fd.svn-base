@@ -1,0 +1,368 @@
+/**
+ * 
+ */
+package de.cinovo.core2.daemon;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.net.SyslogAppender;
+
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+import de.cinovo.deploy.zookeeper.ZooAid;
+import de.cinovo.deploy.zookeeper.model.PropertiesObject;
+
+/**
+ * @author thoeger
+ * 
+ *         Copyright 2012, Cinovo AG
+ * 
+ */
+@SuppressWarnings("restriction")
+public class DaemonStarter {
+
+	private static String serviceName;
+
+	private static final String instanceId = UUID.randomUUID().toString();
+
+	private static String hostname;
+
+	private static final Properties serviceProperties = new Properties();
+
+	private static DaemonManager daemon = new DaemonManager();
+
+	private static boolean devMode;
+
+	private static Logger rlog = Logger.getRootLogger();
+
+	private static SyslogAppender syslog;
+
+	private static IDaemonLifecycleListener lifecycleListener;
+
+	private static LifecyclePhase currentPhase = LifecyclePhase.STOPPED;
+
+	/**
+	 * @return if the system is in development mode
+	 */
+	public static boolean isDevelopmentMode() {
+		return DaemonStarter.devMode;
+	}
+
+	/**
+	 * @return the current {@link LifecyclePhase}
+	 */
+	public static LifecyclePhase getCurrentPhase() {
+		return DaemonStarter.currentPhase;
+	}
+
+	/**
+	 * 
+	 * @return the hostname of the running machine
+	 */
+	public static String getHostname() {
+		return DaemonStarter.hostname;
+	}
+
+	/**
+	 * @return the service name of this daemon
+	 */
+	public static String getServiceName() {
+		return DaemonStarter.serviceName;
+	}
+
+	/**
+	 * @return the instance UUID for this daemon to enable balancing
+	 */
+	public static String getInstanceId() {
+		return DaemonStarter.instanceId;
+	}
+
+	/**
+	 * @return the daemon properties
+	 */
+	public static Properties getServiceProperties() {
+		return DaemonStarter.serviceProperties;
+	}
+
+	/**
+	 * Starts the daemon and provides feedback through the life-cycle listener<br>
+	 * the method <br>
+	 * The following environment variables HAVE TO be set:
+	 * <ul>
+	 * <li>ZOOKEEPER_URL - The URL of the ZooKeeper instance (host:port)</li>
+	 * </ul>
+	 * 
+	 * @param _serviceName
+	 *            the name of this daemon
+	 * @param _lifecycleListener
+	 *            the {@link IDaemonLifecycleListener} to use for phase call-backs
+	 */
+	public static void startDaemon(final String _serviceName, final IDaemonLifecycleListener _lifecycleListener) {
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				DaemonStarter.doStartDaemon(_serviceName, _lifecycleListener);
+			}
+		});
+	}
+
+	private static void doStartDaemon(String _serviceName, IDaemonLifecycleListener _lifecycleListener) {
+		if (DaemonStarter.currentPhase != LifecyclePhase.STOPPED) {
+			DaemonStarter.rlog.error("Service already running");
+			return;
+		}
+		DaemonStarter.currentPhase = LifecyclePhase.STARTING;
+
+		final String devmode = System.getProperty("developmentMode");
+		DaemonStarter.devMode = (devmode != null) && devmode.equals("true");
+
+		DaemonStarter.serviceName = _serviceName;
+		DaemonStarter.lifecycleListener = _lifecycleListener;
+
+		// Configure the logging subsystem
+		DaemonStarter.configureLogging();
+
+		// Set and check the host name
+		DaemonStarter.hostname = DaemonStarter.getHostName();
+		if ((DaemonStarter.hostname == null) || DaemonStarter.hostname.isEmpty()) {
+			DaemonStarter.rlog.error("Hostname could not be determined --> Exiting");
+			DaemonStarter.abortSystem();
+		}
+
+		if (DaemonStarter.devMode) {
+			DaemonStarter.rlog.info("Running in development mode");
+		} else {
+			DaemonStarter.rlog.info("Running in production mode");
+		}
+
+		DaemonStarter.rlog.info("Running with instance id: " + DaemonStarter.instanceId);
+		DaemonStarter.rlog.info("Running on host: " + DaemonStarter.hostname);
+
+		// handle system signals like HUP, TERM, USR1, USR2
+		DaemonStarter.handleSignals();
+
+		// Connect to the ZooKeeper instance
+		DaemonStarter.connectZooKeeper();
+
+		// Load properties from ZooKeeper
+		DaemonStarter.initProperties();
+
+		// Change SYSLOG with properties from ZooKeeper
+		DaemonStarter.amendSyslogAppender();
+
+		// Run custom startup code
+		if (!DaemonStarter.lifecycleListener.doStart()) {
+			DaemonStarter.abortSystem();
+		}
+
+		// Daemon has been started
+		DaemonStarter.rlog.info(DaemonStarter.serviceName + " started!");
+		DaemonStarter.currentPhase = LifecyclePhase.STARTED;
+		DaemonStarter.lifecycleListener.started();
+
+		// This blocks until stop() is called
+		DaemonStarter.daemon.block();
+
+		// Shutdown system
+		DaemonStarter.currentPhase = LifecyclePhase.STOPPING;
+		if (!DaemonStarter.lifecycleListener.doStop()) {
+			DaemonStarter.abortSystem();
+		}
+
+		// Disconnect Zookeeper
+		ZooAid.instance().close();
+
+		DaemonStarter.rlog.info(DaemonStarter.serviceName + " stopped!");
+		DaemonStarter.currentPhase = LifecyclePhase.STOPPED;
+		DaemonStarter.lifecycleListener.stopped();
+
+		System.exit(0);
+	}
+
+	private static void connectZooKeeper() {
+		String zkURL = System.getenv("ZOOKEEPER_URL");
+		if ((zkURL == null) || zkURL.isEmpty() || !zkURL.contains(":")) {
+			DaemonStarter.rlog.error("ZooKeeper URL could not be determined, trying System.getProperty");
+			zkURL = System.getProperty("ZOOKEEPER_URL");
+			if ((zkURL == null) || zkURL.isEmpty() || !zkURL.contains(":")) {
+				DaemonStarter.rlog.error("ZooKeeper URL could not be determined --> Exiting");
+				DaemonStarter.abortSystem();
+				return;
+			}
+		}
+		try {
+			ZooAid.init(zkURL);
+			ZooAid.instance().registerService(DaemonStarter.serviceName, DaemonStarter.hostname);
+			DaemonStarter.rlog.info(String.format("Registered Service %s on host %s", DaemonStarter.serviceName, DaemonStarter.hostname));
+		} catch (final Exception e) {
+			DaemonStarter.rlog.error("Zookeeper failed", e);
+			DaemonStarter.abortSystem(e);
+		}
+	}
+
+	private static void initProperties() {
+		try {
+			// Loading host properties from /config/GLOBAL/properties and /config/<HOST>/properties
+			final PropertiesObject hostConfig = ZooAid.instance().getHostConfig(DaemonStarter.hostname);
+			if (hostConfig == null) {
+				DaemonStarter.rlog.error("Host Config data from ZooKeeper was null");
+				DaemonStarter.abortSystem();
+				return;
+			}
+			for (final Entry<String, Object> e : hostConfig.getProperties().entrySet()) {
+				DaemonStarter.addProperty(e.getKey(), String.valueOf(e.getValue()));
+			}
+
+			// Loading host properties from /config/GLOBAL/services/<SVC> and /config/<HOST>/services/<SVC>
+			final PropertiesObject config = ZooAid.instance().getServiceConfig(DaemonStarter.serviceName, DaemonStarter.hostname);
+			if (config == null) {
+				DaemonStarter.rlog.error("Config data from ZooKeeper was null");
+				DaemonStarter.abortSystem();
+				return;
+			}
+			for (final Entry<String, Object> e : config.getProperties().entrySet()) {
+				DaemonStarter.addProperty(e.getKey(), String.valueOf(e.getValue()));
+			}
+		} catch (final Exception e) {
+			DaemonStarter.rlog.error("Getting config data from ZooKeeper failed", e);
+			DaemonStarter.abortSystem(e);
+		}
+	}
+
+	private static void addProperty(String key, String value) {
+		DaemonStarter.rlog.info(String.format("Setting prop: '%s' with value '%s'", key, value));
+		DaemonStarter.serviceProperties.setProperty(key, value);
+		System.setProperty(key, value);
+	}
+
+	private static String getHostName() {
+		try {
+			return InetAddress.getLocalHost().getHostName();
+		} catch (final UnknownHostException e) {
+			DaemonStarter.rlog.error("Getting hostname failed", e);
+			DaemonStarter.abortSystem(e);
+		}
+		return null;
+	}
+
+	private static void configureLogging() {
+		try {
+			// Clear all existing appenders
+			DaemonStarter.rlog.removeAllAppenders();
+
+			DaemonStarter.rlog.setLevel(Level.INFO);
+
+			// only use SYSLOG and DAROFI in production mode
+			if (!DaemonStarter.isDevelopmentMode()) {
+				final DailyRollingFileAppender darofi = new DailyRollingFileAppender();
+				darofi.setName("DAROFI");
+				darofi.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
+				darofi.setFile("log/" + DaemonStarter.serviceName + ".log");
+				darofi.setDatePattern("'.'yyyy-MM-dd");
+				darofi.setAppend(true);
+				darofi.setThreshold(Level.INFO);
+				darofi.activateOptions();
+				DaemonStarter.rlog.addAppender(darofi);
+
+				DaemonStarter.syslog = new SyslogAppender();
+				DaemonStarter.syslog.setName("SYSLOG");
+				DaemonStarter.syslog.setLayout(new PatternLayout(DaemonStarter.serviceName + ": %-5p %c %x - %m%n"));
+				DaemonStarter.syslog.setSyslogHost("localhost");
+				DaemonStarter.syslog.setFacility("LOCAL1");
+				DaemonStarter.syslog.setFacilityPrinting(false);
+				DaemonStarter.syslog.setThreshold(Level.INFO);
+				DaemonStarter.syslog.activateOptions();
+				DaemonStarter.rlog.addAppender(DaemonStarter.syslog);
+			} else {
+				// CONSOLE is only active in development
+				final ConsoleAppender console = new ConsoleAppender();
+				console.setName("CONSOLE");
+				console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
+				console.setTarget(ConsoleAppender.SYSTEM_OUT);
+				console.activateOptions();
+				DaemonStarter.rlog.addAppender(console);
+			}
+
+		} catch (final Exception e) {
+			System.err.println("Logger config failed with exception: " + e.getMessage());
+			DaemonStarter.lifecycleListener.exception(DaemonStarter.currentPhase, e);
+		}
+	}
+
+	private static void amendSyslogAppender() {
+		if (!DaemonStarter.isDevelopmentMode()) {
+			final String host = DaemonStarter.serviceProperties.getProperty("syslog.host");
+			final String facility = DaemonStarter.serviceProperties.getProperty("syslog.facility");
+			DaemonStarter.syslog.setSyslogHost(host);
+			DaemonStarter.syslog.setFacility(facility);
+			DaemonStarter.syslog.setThreshold(Level.toLevel(DaemonStarter.serviceProperties.getProperty("syslog.level"), Level.WARN));
+			DaemonStarter.syslog.activateOptions();
+			DaemonStarter.rlog.info(String.format("Changed the SYSLOG Appender to host %s and facility %s", host, facility));
+		}
+	}
+
+	/**
+	 * Stop the service and end the program
+	 */
+	public static void stopService() {
+		DaemonStarter.lifecycleListener.stopping();
+		DaemonStarter.daemon.stop();
+	}
+
+	// I KNOW WHAT I AM DOING
+	private final static void handleSignals() {
+		if (!System.getProperty("os.name").contains("Win") && !DaemonStarter.isDevelopmentMode()) {
+			// handle SIGHUP to prevent process to get killed when exiting the tty
+			Signal.handle(new Signal("HUP"), new SignalHandler() {
+
+				@Override
+				public void handle(final Signal arg0) {
+					// Nothing to do here
+				}
+			});
+
+			// handle SIGTERM to notify the program to stop
+			Signal.handle(new Signal("TERM"), new SignalHandler() {
+
+				@Override
+				public void handle(final Signal arg0) {
+					DaemonStarter.stopService();
+				}
+			});
+
+			// handle SIGUSR2 to notify the life-cycle listener
+			Signal.handle(new Signal("USR2"), new SignalHandler() {
+
+				@Override
+				public void handle(final Signal arg0) {
+					DaemonStarter.lifecycleListener.signalUSR2();
+				}
+			});
+		}
+	}
+
+	private static void abortSystem() {
+		DaemonStarter.abortSystem(null);
+	}
+
+	private static void abortSystem(Throwable error) {
+		DaemonStarter.currentPhase = LifecyclePhase.ABORTING;
+		if (error != null) {
+			DaemonStarter.lifecycleListener.exception(DaemonStarter.currentPhase, error);
+		}
+		DaemonStarter.lifecycleListener.aborting();
+		DaemonStarter.rlog.fatal("Unrecoverable error encountered --> Exiting");
+		System.exit(1);
+	}
+}
