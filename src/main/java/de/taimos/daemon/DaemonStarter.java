@@ -1,7 +1,7 @@
 /**
  * 
  */
-package de.hoegertn.daemon;
+package de.taimos.daemon;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

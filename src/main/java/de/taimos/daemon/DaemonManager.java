@@ -1,4 +1,4 @@
-package de.hoegertn.daemon;
+package de.taimos.daemon;
 
 /**
  * 

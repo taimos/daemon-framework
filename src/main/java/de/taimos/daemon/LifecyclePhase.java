@@ -1,4 +1,4 @@
-package de.hoegertn.daemon;
+package de.taimos.daemon;
 
 /**
  * The different phases of the daemon lifecycle
