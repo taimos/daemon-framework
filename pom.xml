@@ -1,23 +1,33 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
 	</parent>
-	
+
 	<groupId>de.taimos</groupId>
 	<artifactId>daemon-framework</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>Daemon Library</name>
 	<description>Library providing daemon functionality</description>
+	<url>https://github.com/taimos/daemon-framework</url>
 	<inceptionYear>2012</inceptionYear>
 	<organization>
 		<name>Taimos GmbH</name>
 		<url>http://www.taimos.de</url>
 	</organization>
+	<scm>
+		<connection>https://github.com/taimos/daemon-framework.git</connection>
+		<developerConnection>git@github.com:taimos/daemon-framework.git</developerConnection>
+		<url>https://github.com/taimos/daemon-framework</url>
+	</scm>
+	<issueManagement>
+		<system>github</system>
+		<url>https://github.com/taimos/daemon-framework/issues</url>
+	</issueManagement>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -39,7 +49,7 @@
 	<!-- Shared version number properties -->
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<slf4j.version>1.6.6</slf4j.version>
+		<slf4j.version>1.7.2</slf4j.version>
 	</properties>
 
 	<build>
