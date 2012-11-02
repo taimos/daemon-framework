@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.DailyRollingFileAppender;
@@ -103,13 +102,13 @@ public class DaemonStarter {
 	 *            the {@link IDaemonLifecycleListener} to use for phase call-backs
 	 */
 	public static void startDaemon(final String _daemonName, final IDaemonLifecycleListener _lifecycleListener) {
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
+		// Run daemon async
+		new Thread() {
 			@Override
 			public void run() {
 				DaemonStarter.doStartDaemon(_daemonName, _lifecycleListener);
 			}
-		});
+		}.start();
 	}
 
 	private static void doStartDaemon(final String _daemonName, final IDaemonLifecycleListener _lifecycleListener) {
@@ -213,7 +212,7 @@ public class DaemonStarter {
 	}
 
 	private static void addProperty(final String key, final String value) {
-		DaemonStarter.rlog.info(String.format("Setting prop: '%s' with value '%s'", key, value));
+		DaemonStarter.rlog.info(String.format("Setting property: '%s' with value '%s'", key, value));
 		DaemonStarter.daemonProperties.setProperty(key, value);
 		System.setProperty(key, value);
 	}
@@ -251,7 +250,7 @@ public class DaemonStarter {
 				DaemonStarter.syslog.setName("SYSLOG");
 				DaemonStarter.syslog.setLayout(new PatternLayout(DaemonStarter.daemonName + ": %-5p %c %x - %m%n"));
 				DaemonStarter.syslog.setSyslogHost("localhost");
-				DaemonStarter.syslog.setFacility("LOCAL1");
+				DaemonStarter.syslog.setFacility("LOCAL0");
 				DaemonStarter.syslog.setFacilityPrinting(false);
 				DaemonStarter.syslog.setThreshold(Level.INFO);
 				DaemonStarter.syslog.activateOptions();
