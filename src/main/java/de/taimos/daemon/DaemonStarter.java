@@ -275,12 +275,17 @@ public class DaemonStarter {
 	private static void amendLogAppender() {
 		if (!DaemonStarter.isDevelopmentMode()) {
 			final String host = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_HOST, "localhost");
-			final String facility = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_FACILITY, "LCOAL0");
+			final String facility = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_FACILITY, "LOCAL0");
+			final String logfile = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_FILE, "true");
 			final Level syslogLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_LEVEL), Level.WARN);
 			final Level logLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LEVEL), Level.INFO);
 
-			DaemonStarter.darofi.setThreshold(logLevel);
-			DaemonStarter.darofi.activateOptions();
+			if (logfile != null && logfile.equals("false")) {
+				DaemonStarter.rlog.removeAppender(DaemonStarter.darofi);
+			} else {
+				DaemonStarter.darofi.setThreshold(logLevel);
+				DaemonStarter.darofi.activateOptions();
+			}
 
 			DaemonStarter.syslog.setSyslogHost(host);
 			DaemonStarter.syslog.setFacility(facility);

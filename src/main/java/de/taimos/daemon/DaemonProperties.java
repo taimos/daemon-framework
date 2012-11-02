@@ -1,5 +1,6 @@
 package de.taimos.daemon;
 
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 
 /**
@@ -17,6 +18,11 @@ public interface DaemonProperties {
 	 * the logger level (see {@link Level})
 	 */
 	public static final String LOGGER_LEVEL = "logger.level";
+
+	/**
+	 * true to use {@link FileAppender}; false to disable
+	 */
+	public static final String LOGGER_FILE = "logger.file";
 
 	/**
 	 * the log level for syslog (see {@link Level})

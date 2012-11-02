@@ -7,7 +7,7 @@
 
 progname=testdaemon
 pidfile=/var/run/$progname
-RUNDIR=/opt/crest
+RUNDIR=/opt/$progname
 RUNUSER=root
 JAR_FILE=my-jarfile.jar
 JAVA_OPTS="-XX:MaxPermSize=128m -Xmx1024m"
