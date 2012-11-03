@@ -8,6 +8,15 @@ There are some small steps to follow to create a Linux daemon with Java:
 
 1. Implement your subclass of de.taimos.daemon.DaemonLifecycleAdapter
 2. Call the DaemonStarter from your main method
+3. Customize your init-script
+
+If you want to run the program in _development mode_ make sure you start it with ``-DdevelopmentMode=true``.
+
+In development mode the program's behavior will differ in some small points:
+
+- Logging uses console instead of syslog and logfile
+- No signal handling is used
+
 
 ## DaemonLifecycleAdapter
 
@@ -58,7 +67,33 @@ In your _main_ method just call startDaemon to run the daemon framework. You hav
 DaemonStarter.startDaemon("my-service-name", new MyLifecycleAdapter());
 ```
 
+## Customize init-script
 
+You just have to create a copy of _initscript_ from the projects root folder and customize it. For basic usage it is enough to change the variables on top of the script
+
+### progname
+
+The name of the daemon
+
+### pidfile
+
+The name and location of the PID file. It defaults to /var/run/<daemonname>
+
+### RUNDIR
+
+The location of the daemon program. It defaults to /opt/<daemonname>
+
+### RUNUSER
+
+The user under which the daemon is run. The init script then calls java with ``su -c <command> RUNUSER``
+
+### JAR_FILE
+
+The name of the jarfile as it is found in $RUNDIR. The script calls java -jar <jarname>.
+
+### JAVA_OPTS
+
+Some Java options like memory size etc.
 
 
 
