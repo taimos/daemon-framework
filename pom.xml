@@ -20,9 +20,9 @@
 		<url>http://www.taimos.de</url>
 	</organization>
 	<scm>
-		<connection>https://github.com/taimos/daemon-framework.git</connection>
-		<developerConnection>git@github.com:taimos/daemon-framework.git</developerConnection>
-		<url>https://github.com/taimos/daemon-framework</url>
+		<connection>scm:git:git@github.com:taimos/daemon-framework.git</connection>
+		<developerConnection>scm:git:git@github.com:taimos/daemon-framework.git</developerConnection>
+		<url>scm:git:git@github.com:taimos/daemon-framework.git</url>
 	</scm>
 	<issueManagement>
 		<system>github</system>
