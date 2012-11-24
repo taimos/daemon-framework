@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.DailyRollingFileAppender;
@@ -28,39 +30,39 @@ import sun.misc.SignalHandler;
 @SuppressWarnings("restriction")
 public class DaemonStarter {
 
-	private static String daemonName;
+	private static final AtomicReference<String> daemonName = new AtomicReference<>();
 
 	private static final String instanceId = UUID.randomUUID().toString();
 
 	private static final Properties daemonProperties = new Properties();
 
-	private static String hostname;
+	private static final AtomicReference<String> hostname = new AtomicReference<>();
 
-	private static DaemonManager daemon = new DaemonManager();
+	private static final DaemonManager daemon = new DaemonManager();
 
-	private static boolean devMode;
+	private static final AtomicBoolean devMode = new AtomicBoolean();
 
-	private static Logger rlog = Logger.getRootLogger();
+	private static final Logger rlog = Logger.getRootLogger();
 
 	private static SyslogAppender syslog;
 	private static DailyRollingFileAppender darofi;
 
-	private static IDaemonLifecycleListener lifecycleListener;
+	private static final AtomicReference<IDaemonLifecycleListener> lifecycleListener = new AtomicReference<>();
 
-	private static LifecyclePhase currentPhase = LifecyclePhase.STOPPED;
+	private static final AtomicReference<LifecyclePhase> currentPhase = new AtomicReference<LifecyclePhase>(LifecyclePhase.STOPPED);
 
 	/**
 	 * @return if the system is in development mode
 	 */
 	public static boolean isDevelopmentMode() {
-		return DaemonStarter.devMode;
+		return DaemonStarter.devMode.get();
 	}
 
 	/**
 	 * @return the current {@link LifecyclePhase}
 	 */
 	public static LifecyclePhase getCurrentPhase() {
-		return DaemonStarter.currentPhase;
+		return DaemonStarter.currentPhase.get();
 	}
 
 	/**
@@ -68,14 +70,14 @@ public class DaemonStarter {
 	 * @return the hostname of the running machine
 	 */
 	public static String getHostname() {
-		return DaemonStarter.hostname;
+		return DaemonStarter.hostname.get();
 	}
 
 	/**
 	 * @return the name of this daemon
 	 */
 	public static String getDaemonName() {
-		return DaemonStarter.daemonName;
+		return DaemonStarter.daemonName.get();
 	}
 
 	/**
@@ -90,6 +92,13 @@ public class DaemonStarter {
 	 */
 	public static Properties getDaemonProperties() {
 		return DaemonStarter.daemonProperties;
+	}
+
+	private static IDaemonLifecycleListener getLifecycleListener() {
+		if (DaemonStarter.lifecycleListener == null) {
+			throw new RuntimeException("No lifecycle listener found");
+		}
+		return DaemonStarter.lifecycleListener.get();
 	}
 
 	/**
@@ -112,17 +121,17 @@ public class DaemonStarter {
 	}
 
 	private static void doStartDaemon(final String _daemonName, final IDaemonLifecycleListener _lifecycleListener) {
-		if (DaemonStarter.currentPhase != LifecyclePhase.STOPPED) {
+		final boolean updated = DaemonStarter.currentPhase.compareAndSet(LifecyclePhase.STOPPED, LifecyclePhase.STARTING);
+		if (!updated) {
 			DaemonStarter.rlog.error("Service already running");
 			return;
 		}
-		DaemonStarter.currentPhase = LifecyclePhase.STARTING;
 
-		DaemonStarter.daemonName = _daemonName;
-		DaemonStarter.lifecycleListener = _lifecycleListener;
+		DaemonStarter.daemonName.set(_daemonName);
+		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 
-		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE);
-		DaemonStarter.devMode = (devmode != null) && devmode.equals("true");
+		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "false");
+		DaemonStarter.devMode.set((devmode != null) && devmode.equals("true"));
 
 		// Configure the logging subsystem
 		DaemonStarter.configureLogging();
@@ -143,7 +152,7 @@ public class DaemonStarter {
 		DaemonStarter.amendLogAppender();
 
 		// Run custom startup code
-		if (!DaemonStarter.lifecycleListener.doStart()) {
+		if (!DaemonStarter.getLifecycleListener().doStart()) {
 			DaemonStarter.abortSystem();
 		}
 
@@ -154,7 +163,7 @@ public class DaemonStarter {
 		DaemonStarter.daemon.block();
 
 		// Shutdown system
-		if (!DaemonStarter.lifecycleListener.doStop()) {
+		if (!DaemonStarter.getLifecycleListener().doStop()) {
 			DaemonStarter.abortSystem();
 		}
 
@@ -167,18 +176,18 @@ public class DaemonStarter {
 
 	private static void notifyStopped() {
 		DaemonStarter.rlog.info(DaemonStarter.daemonName + " stopped!");
-		DaemonStarter.currentPhase = LifecyclePhase.STOPPED;
-		DaemonStarter.lifecycleListener.stopped();
+		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPED);
+		DaemonStarter.getLifecycleListener().stopped();
 	}
 
 	private static void notifyStarted() {
 		DaemonStarter.rlog.info(DaemonStarter.daemonName + " started!");
-		DaemonStarter.currentPhase = LifecyclePhase.STARTED;
-		DaemonStarter.lifecycleListener.started();
+		DaemonStarter.currentPhase.set(LifecyclePhase.STARTED);
+		DaemonStarter.getLifecycleListener().started();
 	}
 
 	private static void logStartupInfo() {
-		if (DaemonStarter.devMode) {
+		if (DaemonStarter.isDevelopmentMode()) {
 			DaemonStarter.rlog.info("Running in development mode");
 		} else {
 			DaemonStarter.rlog.info("Running in production mode");
@@ -189,17 +198,24 @@ public class DaemonStarter {
 	}
 
 	private static void determineHostname() {
-		DaemonStarter.hostname = DaemonStarter.getHostName();
-		if ((DaemonStarter.hostname == null) || DaemonStarter.hostname.isEmpty()) {
-			DaemonStarter.rlog.error("Hostname could not be determined --> Exiting");
-			DaemonStarter.abortSystem();
+		try {
+			final String host = InetAddress.getLocalHost().getHostName();
+			if ((host != null) && !host.isEmpty()) {
+				DaemonStarter.hostname.set(host);
+			} else {
+				DaemonStarter.rlog.error("Hostname could not be determined --> Exiting");
+				DaemonStarter.abortSystem();
+			}
+		} catch (final UnknownHostException e) {
+			DaemonStarter.rlog.error("Getting hostname failed", e);
+			DaemonStarter.abortSystem(e);
 		}
 	}
 
 	private static void initProperties() {
 		try {
 			// Loading properties
-			final Map<String, String> properties = DaemonStarter.lifecycleListener.loadProperties();
+			final Map<String, String> properties = DaemonStarter.getLifecycleListener().loadProperties();
 			if (properties != null) {
 				for (final Entry<String, String> e : properties.entrySet()) {
 					DaemonStarter.addProperty(e.getKey(), String.valueOf(e.getValue()));
@@ -215,16 +231,6 @@ public class DaemonStarter {
 		DaemonStarter.rlog.info(String.format("Setting property: '%s' with value '%s'", key, value));
 		DaemonStarter.daemonProperties.setProperty(key, value);
 		System.setProperty(key, value);
-	}
-
-	private static String getHostName() {
-		try {
-			return InetAddress.getLocalHost().getHostName();
-		} catch (final UnknownHostException e) {
-			DaemonStarter.rlog.error("Getting hostname failed", e);
-			DaemonStarter.abortSystem(e);
-		}
-		return null; // Abort will exit the system
 	}
 
 	private static void configureLogging() {
@@ -267,7 +273,7 @@ public class DaemonStarter {
 
 		} catch (final Exception e) {
 			System.err.println("Logger config failed with exception: " + e.getMessage());
-			DaemonStarter.lifecycleListener.exception(DaemonStarter.currentPhase, e);
+			DaemonStarter.getLifecycleListener().exception(DaemonStarter.currentPhase.get(), e);
 		}
 	}
 
@@ -301,8 +307,8 @@ public class DaemonStarter {
 	 * Stop the service and end the program
 	 */
 	public static void stopService() {
-		DaemonStarter.currentPhase = LifecyclePhase.STOPPING;
-		DaemonStarter.lifecycleListener.stopping();
+		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPING);
+		DaemonStarter.getLifecycleListener().stopping();
 		DaemonStarter.daemon.stop();
 	}
 
@@ -332,7 +338,7 @@ public class DaemonStarter {
 
 				@Override
 				public void handle(final Signal arg0) {
-					DaemonStarter.lifecycleListener.signalUSR2();
+					DaemonStarter.getLifecycleListener().signalUSR2();
 				}
 			});
 		}
@@ -343,11 +349,11 @@ public class DaemonStarter {
 	}
 
 	private static void abortSystem(final Throwable error) {
-		DaemonStarter.currentPhase = LifecyclePhase.ABORTING;
+		DaemonStarter.currentPhase.set(LifecyclePhase.ABORTING);
 		if (error != null) {
-			DaemonStarter.lifecycleListener.exception(DaemonStarter.currentPhase, error);
+			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);
 		}
-		DaemonStarter.lifecycleListener.aborting();
+		DaemonStarter.getLifecycleListener().aborting();
 		DaemonStarter.rlog.fatal("Unrecoverable error encountered --> Exiting");
 
 		// Exit system with failure return code
