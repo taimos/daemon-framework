@@ -128,6 +128,7 @@ public class DaemonStarter {
 		}
 
 		DaemonStarter.daemonName.set(_daemonName);
+		System.setProperty("daemonName", _daemonName);
 		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 
 		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "false");
@@ -278,12 +279,15 @@ public class DaemonStarter {
 	}
 
 	private static void amendLogAppender() {
+		final Level logLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LEVEL), Level.INFO);
+		DaemonStarter.rlog.setLevel(logLevel);
+		DaemonStarter.rlog.info(String.format("Changed the the log level to %s", logLevel));
+
 		if (!DaemonStarter.isDevelopmentMode()) {
 			final String host = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_HOST, "localhost");
 			final String facility = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_FACILITY, "LOCAL0");
 			final String logfile = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_FILE, "true");
 			final Level syslogLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_LEVEL), Level.WARN);
-			final Level logLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LEVEL), Level.INFO);
 
 			if (logfile != null && logfile.equals("false")) {
 				DaemonStarter.rlog.removeAppender(DaemonStarter.darofi);
@@ -297,9 +301,7 @@ public class DaemonStarter {
 			DaemonStarter.syslog.setThreshold(syslogLevel);
 			DaemonStarter.syslog.activateOptions();
 
-			DaemonStarter.rlog.setLevel(logLevel);
 			DaemonStarter.rlog.info(String.format("Changed the SYSLOG Appender to host %s and facility %s", host, facility));
-			DaemonStarter.rlog.info(String.format("Changed the the log level to %s", logLevel));
 		}
 	}
 

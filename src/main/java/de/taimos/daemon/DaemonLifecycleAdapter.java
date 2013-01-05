@@ -1,6 +1,10 @@
 package de.taimos.daemon;
 
+import java.io.FileReader;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * Adapter for {@link IDaemonLifecycleListener}
@@ -57,6 +61,24 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	@Override
 	public Map<String, String> loadProperties() {
 		return null;
+	}
+
+	/**
+	 * @param filename
+	 * @return the map containing the properties
+	 */
+	public static Map<String, String> loadPropertiesFile(final String filename) {
+		final HashMap<String, String> map = new HashMap<>();
+		try (FileReader fr = new FileReader(filename)) {
+			final Properties prop = new Properties();
+			prop.load(fr);
+			for (final Entry<Object, Object> entry : prop.entrySet()) {
+				map.put(entry.getKey().toString(), entry.getValue().toString());
+			}
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 
 }

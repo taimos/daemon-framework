@@ -39,4 +39,9 @@ public interface DaemonProperties {
 	 */
 	public static final String SYSLOG_HOST = "syslog.host";
 
+	/**
+	 * the name of the daemon
+	 */
+	public static final String DAEMON_NAME = "daemonName";
+
 }
