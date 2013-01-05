@@ -1,6 +1,8 @@
 package de.taimos.daemon;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -66,8 +68,10 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	/**
 	 * @param filename
 	 * @return the map containing the properties
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
-	public static Map<String, String> loadPropertiesFile(final String filename) {
+	public static Map<String, String> loadPropertiesFile(final String filename) throws FileNotFoundException, IOException {
 		final HashMap<String, String> map = new HashMap<>();
 		try (FileReader fr = new FileReader(filename)) {
 			final Properties prop = new Properties();
@@ -75,8 +79,6 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 			for (final Entry<Object, Object> entry : prop.entrySet()) {
 				map.put(entry.getKey().toString(), entry.getValue().toString());
 			}
-		} catch (final Exception e) {
-			e.printStackTrace();
 		}
 		return map;
 	}
