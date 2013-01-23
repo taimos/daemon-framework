@@ -128,7 +128,7 @@ public class DaemonStarter {
 		}
 
 		DaemonStarter.daemonName.set(_daemonName);
-		System.setProperty("daemonName", _daemonName);
+		System.setProperty(DaemonProperties.DAEMON_NAME, _daemonName);
 		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 
 		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "false");
