@@ -246,7 +246,7 @@ public class DaemonStarter {
 				DaemonStarter.darofi = new DailyRollingFileAppender();
 				DaemonStarter.darofi.setName("DAROFI");
 				DaemonStarter.darofi.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
-				DaemonStarter.darofi.setFile("log/" + DaemonStarter.daemonName + ".log");
+				DaemonStarter.darofi.setFile("log/" + DaemonStarter.daemonName.get() + ".log");
 				DaemonStarter.darofi.setDatePattern("'.'yyyy-MM-dd");
 				DaemonStarter.darofi.setAppend(true);
 				DaemonStarter.darofi.setThreshold(Level.INFO);
@@ -255,7 +255,7 @@ public class DaemonStarter {
 
 				DaemonStarter.syslog = new SyslogAppender();
 				DaemonStarter.syslog.setName("SYSLOG");
-				DaemonStarter.syslog.setLayout(new PatternLayout(DaemonStarter.daemonName + ": %-5p %c %x - %m%n"));
+				DaemonStarter.syslog.setLayout(new PatternLayout(DaemonStarter.daemonName.get() + ": %-5p %c %x - %m%n"));
 				DaemonStarter.syslog.setSyslogHost("localhost");
 				DaemonStarter.syslog.setFacility("LOCAL0");
 				DaemonStarter.syslog.setFacilityPrinting(false);
