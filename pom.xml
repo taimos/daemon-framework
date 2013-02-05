@@ -9,7 +9,7 @@
 
 	<groupId>de.taimos</groupId>
 	<artifactId>daemon-framework</artifactId>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>1.1.1</version>
 	<name>Daemon Library</name>
 	<description>Library providing daemon functionality</description>
 	<url>https://github.com/taimos/daemon-framework</url>
