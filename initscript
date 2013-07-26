@@ -83,12 +83,22 @@ do_signal() {
 do_status() {
 	
 	if [ -f $pidfile ] 
-	then
-		pid=`cat $pidfile`
-		echo "$progname is running with PID $pid"
-	else
-		echo "$progname is not running"
-	fi
+    then
+    	pid=`cat $pidfile`
+        res=`ps --pid $pid 2> /dev/null | grep -c $pid 2> /dev/null`
+        if [ $res -eq '0' ]
+        then
+            rm -f $pidfile > /dev/null
+            echo "$progname is not running" 
+            exit 1;
+        else
+            echo "$progname is running with PID $pid" 
+            exit 0;
+        fi
+    else
+        echo "$progname is not running" 
+        exit 3;
+    fi
 
 }
 
