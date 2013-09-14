@@ -68,13 +68,13 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	
 	public IPropertyProvider getPropertyProvider() {
 		switch (System.getProperty(DaemonProperties.PROPERTY_SOURCE, "")) {
-		case "aws":
+		case DaemonProperties.PROPERTY_SOURCE_AWS:
 			return new UserDataPropertyProvider();
-		case "file":
+		case DaemonProperties.PROPERTY_SOURCE_FILE:
 			return new FilePropertyProvider(System.getProperty(DaemonProperties.PROPERTY_LOCATION));
-		case "cs":
+		case DaemonProperties.PROPERTY_SOURCE_CS:
 			return new ConfigServerPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_SERVER), System.getProperty(DaemonProperties.PROPERTY_TEMPLATE));
-		case "http":
+		case DaemonProperties.PROPERTY_SOURCE_HTTP:
 			return new HTTPPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_LOCATION));
 		default:
 			return new EmptyPropertyProvider();

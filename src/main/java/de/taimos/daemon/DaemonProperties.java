@@ -37,4 +37,13 @@ public interface DaemonProperties {
 	public static final String PROPERTY_SERVER = "property.server";
 	/** the config server template if property.source=cs */
 	public static final String PROPERTY_TEMPLATE = "property.template";
+	
+	/** the property source type - Amazon Web Services UserData */
+	public static final String PROPERTY_SOURCE_AWS = "aws";
+	/** the property source type - local file */
+	public static final String PROPERTY_SOURCE_FILE = "file";
+	/** the property source type - HTTP GET resource */
+	public static final String PROPERTY_SOURCE_HTTP = "http";
+	/** the property source type - Cinovo Config Server */
+	public static final String PROPERTY_SOURCE_CS = "cs";
 }
