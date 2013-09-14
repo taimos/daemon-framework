@@ -5,27 +5,38 @@
 # description: 
 ###
 
-progname=testdaemon
+progname=`basename $0`
+
+rundir=/opt/$progname;
 pidfile=/var/run/$progname
-RUNDIR=/opt/$progname
-RUNUSER=root
-JAR_FILE=my-jarfile.jar
-JAVA_OPTS="-XX:MaxPermSize=128m -Xmx1024m"
+jarfile=my-jarfile.jar
+runuser=root
+gracetime=10
+maxmem=1024m
+JAVAOPTS=
+JAVAARGS=
 
 do_start() {
 
 	if [ -f $pidfile ] 
 	then
-		echo "$progname already running!";
-		exit 1;
+		pid=`cat $pidfile`
+        res=`ps --pid $pid 2> /dev/null | grep -c $pid 2> /dev/null`
+        if [ $res -eq '0' ]
+        then
+            rm -f $pidfile > /dev/null
+        else
+			echo "$progname already running with PID $pid"
+			exit 1;
+        fi
 	fi
 	
-	# encoding will be broken otherwise
+	# encoding might be broken otherwise
 	export LANG=en_US.UTF-8
 	
-	cd $RUNDIR
+	cd $rundir
 	
-	pid=$(su -m -c "java $JAVA_OPTS -jar $JAR_FILE > /dev/null & echo \$! " "$RUNUSER")
+	pid=$(su -m -c "java -XX:MaxPermSize=128m -Xmx$maxmem -XX:OnOutOfMemoryError='kill -9 %p' -DdevelopmentMode=false $JAVAOPTS -jar $jarfile $JAVAARGS > /dev/null & echo \$! " "$runuser")
 		
 	echo "$pid" > $pidfile
 
@@ -37,9 +48,8 @@ do_start() {
 		rm -f $pidfile
 		exit 1;
 	fi 
-
-	echo "Started with PID: $pid"	
-	exit 0;
+	
+	echo "Started with PID: $pid"
 }
 
 do_stop() {
@@ -53,30 +63,18 @@ do_stop() {
 		rm -f $pidfile
 		
 		count=0;
-		until [ `ps --pid $pid 2> /dev/null | grep -c $pid 2> /dev/null` -eq '0' ] || [ $count -gt 10 ]
+		until [ `ps --pid $pid 2> /dev/null | grep -c $pid 2> /dev/null` -eq '0' ] || [ $count -gt $gracetime ]
     	do
       		sleep 1
       		let count=$count+1;
     	done
 
-    	if [ $count -gt 10 ]; then
+    	if [ $count -gt $gracetime ]; then
     		echo "Force stop of $progname"
       		kill -9 $pid
     	fi
     	
     	echo "Stopped"
-		
-		exit 0;
-	fi
-}
-
-do_signal() {
-
-	if [ -f $pidfile ] 
-	then
-		pid=`cat $pidfile`
-		kill -s USR2 $pid > /dev/null
-		exit 0;
 	fi
 }
 
@@ -84,7 +82,7 @@ do_status() {
 	
 	if [ -f $pidfile ] 
     then
-    	pid=`cat $pidfile`
+        pid=`cat $pidfile`
         res=`ps --pid $pid 2> /dev/null | grep -c $pid 2> /dev/null`
         if [ $res -eq '0' ]
         then
@@ -102,6 +100,16 @@ do_status() {
 
 }
 
+do_signal() {
+
+	if [ -f $pidfile ] 
+	then
+		pid=`cat $pidfile`
+		echo "Signalling $pid"
+		kill -s USR2 $pid > /dev/null
+	fi
+}
+
 
 case "$1" in
 start)  echo "Starting $progname"
@@ -113,14 +121,14 @@ stop)  echo "Stopping $progname"
 status)  
         do_status
         ;;
+signal)  
+        do_signal
+        ;;
 restart)
 		do_stop
 		do_start
 		;;
-signal) 
-		do_signal
-		;;
-*)      echo "Usage: service $progname start|stop|status|restart|signal"
+*)      echo "Usage: service $progname start|stop|restart|status|signal"
         exit 1
         ;;
 esac
