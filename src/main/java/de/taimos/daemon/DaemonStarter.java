@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -111,13 +112,13 @@ public class DaemonStarter {
 	 */
 	public static void startDaemon(final String _daemonName, final IDaemonLifecycleListener _lifecycleListener) {
 		// Run daemon async
-		new Thread() {
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			
 			@Override
 			public void run() {
 				DaemonStarter.doStartDaemon(_daemonName, _lifecycleListener);
 			}
-		}.start();
+		});
 	}
 	
 	private static void doStartDaemon(final String _daemonName, final IDaemonLifecycleListener _lifecycleListener) {
