@@ -355,11 +355,19 @@ public class DaemonStarter {
 		}
 	}
 	
-	private static void abortSystem() {
+	/**
+	 * Abort the daemon
+	 */
+	public static void abortSystem() {
 		DaemonStarter.abortSystem(null);
 	}
 	
-	private static void abortSystem(final Throwable error) {
+	/**
+	 * Abort the daemon
+	 * 
+	 * @param error the error causing the abortion
+	 */
+	public static void abortSystem(final Throwable error) {
 		DaemonStarter.currentPhase.set(LifecyclePhase.ABORTING);
 		if (error != null) {
 			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);
