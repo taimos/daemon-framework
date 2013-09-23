@@ -18,15 +18,13 @@ import de.taimos.daemon.properties.UserDataPropertyProvider;
 public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	
 	@Override
-	public boolean doStart() {
+	public void doStart() throws Exception {
 		// override in subclass when needed
-		return true;
 	}
 	
 	@Override
-	public boolean doStop() {
+	public void doStop() throws Exception {
 		// override in subclass when needed
-		return true;
 	}
 	
 	@Override
@@ -66,6 +64,9 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 		return this.getPropertyProvider().loadProperties();
 	}
 	
+	/**
+	 * @return the property provider
+	 */
 	public IPropertyProvider getPropertyProvider() {
 		switch (System.getProperty(DaemonProperties.PROPERTY_SOURCE, "")) {
 		case DaemonProperties.PROPERTY_SOURCE_AWS:

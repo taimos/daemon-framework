@@ -154,8 +154,10 @@ public class DaemonStarter {
 		DaemonStarter.amendLogAppender();
 		
 		// Run custom startup code
-		if (!DaemonStarter.getLifecycleListener().doStart()) {
-			DaemonStarter.abortSystem();
+		try {
+			DaemonStarter.getLifecycleListener().doStart();
+		} catch (Exception e) {
+			DaemonStarter.abortSystem(e);
 		}
 		
 		// Daemon has been started
@@ -165,8 +167,10 @@ public class DaemonStarter {
 		DaemonStarter.daemon.block();
 		
 		// Shutdown system
-		if (!DaemonStarter.getLifecycleListener().doStop()) {
-			DaemonStarter.abortSystem();
+		try {
+			DaemonStarter.getLifecycleListener().doStop();
+		} catch (Exception e) {
+			DaemonStarter.abortSystem(e);
 		}
 		
 		// Daemon has been stopped
@@ -369,12 +373,13 @@ public class DaemonStarter {
 	 */
 	public static void abortSystem(final Throwable error) {
 		DaemonStarter.currentPhase.set(LifecyclePhase.ABORTING);
-		if (error != null) {
-			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);
-		}
 		DaemonStarter.getLifecycleListener().aborting();
-		DaemonStarter.rlog.fatal("Unrecoverable error encountered --> Exiting");
-		
+		if (error != null) {
+			DaemonStarter.rlog.fatal("Unrecoverable error encountered  --> Exiting : " + error.getMessage());
+			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);
+		} else {
+			DaemonStarter.rlog.fatal("Unrecoverable error encountered --> Exiting");
+		}
 		// Exit system with failure return code
 		System.exit(1);
 	}
