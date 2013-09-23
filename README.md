@@ -1,6 +1,6 @@
 # Taimos daemon-framework
 
-Litte framework to create Java programs that behave like Linux daemons.
+Little framework to create Java programs that behave like Linux daemons.
 
 # Getting started
 
@@ -10,7 +10,7 @@ There are some small steps to follow to create a Linux daemon with Java:
 2. Call the DaemonStarter from your main method
 3. Customize your init-script
 
-If you want to run the program in _development mode_ make sure you start it with ``-DdevelopmentMode=true``.
+If you want to run the program in _prdocution mode_ make sure you start it with ``-DdevelopmentMode=false``.
 
 In development mode the program's behavior will differ in some small points:
 
@@ -20,15 +20,15 @@ In development mode the program's behavior will differ in some small points:
 
 ## DaemonLifecycleAdapter
 
-### boolean doStart()
+### void doStart() throws Exception
 
-This method is called to start your program. It must be non blocking and must return true on success.
-If this method returns false the DaemonFramework stops execution of the daemon.
+This method is called to start your program. It must be non blocking.
+If this method throws any Exception the DaemonFramework stops execution of the daemon.
 
-### boolean doStop()
+### void doStop() throws Exception
 
-This method is called on OS signal to stop your program. It must be non blocking and must return true on success.
-If this method returns false the DaemonFramework stops execution of the daemon.
+This method is called on OS signal to stop your program. It must be non blocking.
+If this method throws any Exception the DaemonFramework stops execution of the daemon.
 
 ### started()
 
@@ -56,7 +56,7 @@ This method is called when an exception occurs in DaemonStarter. It provides the
 
 ### Map<String, String> loadProperties()
 
-This method is called to obtain the daemon properties. All properties provided in thsi map will be available via _System.getProperty_ later on.
+This method is called to obtain the daemon properties. All properties provided in this map will be available via _System.getProperty_ later on.
 The properties found in _de.taimos.daemon.DaemonProperties_ are used by the daemon framework itself and should be filled.
 
 ## Call DaemonStarter
