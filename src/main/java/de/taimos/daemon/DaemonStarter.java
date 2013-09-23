@@ -129,7 +129,7 @@ public class DaemonStarter {
 		}
 		
 		DaemonStarter.daemonName.set(_daemonName);
-		System.setProperty(DaemonProperties.DAEMON_NAME, _daemonName);
+		DaemonStarter.addProperty(DaemonProperties.DAEMON_NAME, _daemonName);
 		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 		
 		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "true");
@@ -230,13 +230,17 @@ public class DaemonStarter {
 	}
 	
 	private static void addProperty(final String key, final String value) {
-		if (DaemonStarter.isDevelopmentMode()) {
-			DaemonStarter.rlog.info(String.format("Setting property: '%s' with value '%s'", key, value));
-		} else {
-			DaemonStarter.rlog.debug(String.format("Setting property: '%s' with value '%s'", key, value));
+		if (key == null) {
+			return;
 		}
-		DaemonStarter.daemonProperties.setProperty(key, value);
-		System.setProperty(key, value);
+		String trimKey = key.trim();
+		if (DaemonStarter.isDevelopmentMode()) {
+			DaemonStarter.rlog.info(String.format("Setting property: '%s' with value '%s'", trimKey, value));
+		} else {
+			DaemonStarter.rlog.debug(String.format("Setting property: '%s' with value '%s'", trimKey, value));
+		}
+		DaemonStarter.daemonProperties.setProperty(trimKey, value);
+		System.setProperty(trimKey, value);
 	}
 	
 	private static void configureLogging() {
