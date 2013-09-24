@@ -130,6 +130,7 @@ public class DaemonStarter {
 		
 		DaemonStarter.daemonName.set(_daemonName);
 		DaemonStarter.addProperty(DaemonProperties.DAEMON_NAME, _daemonName);
+		DaemonStarter.addProperty(DaemonProperties.SERVICE_NAME, _daemonName);
 		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 		
 		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "true");
@@ -373,7 +374,11 @@ public class DaemonStarter {
 	 */
 	public static void abortSystem(final Throwable error) {
 		DaemonStarter.currentPhase.set(LifecyclePhase.ABORTING);
-		DaemonStarter.getLifecycleListener().aborting();
+		try {
+			DaemonStarter.getLifecycleListener().aborting();
+		} catch (Exception e) {
+			DaemonStarter.rlog.error("Custom abort failed", e);
+		}
 		if (error != null) {
 			DaemonStarter.rlog.fatal("Unrecoverable error encountered  --> Exiting : " + error.getMessage());
 			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);

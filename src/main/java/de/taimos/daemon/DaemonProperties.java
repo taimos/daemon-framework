@@ -28,6 +28,8 @@ public interface DaemonProperties {
 	
 	/** the name of the daemon */
 	public static final String DAEMON_NAME = "daemonName";
+	/** the name of the daemon */
+	public static final String SERVICE_NAME = "serviceName";
 	
 	/** the property source type (aws, cs, file, http) */
 	public static final String PROPERTY_SOURCE = "property.source";
