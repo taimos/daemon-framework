@@ -47,6 +47,7 @@ public class DaemonStarter {
 	
 	private static SyslogAppender syslog;
 	private static DailyRollingFileAppender darofi;
+	private static LogglyAppender loggly;
 	
 	private static final AtomicReference<IDaemonLifecycleListener> lifecycleListener = new AtomicReference<>();
 	
@@ -182,14 +183,14 @@ public class DaemonStarter {
 	}
 	
 	private static void notifyStopped() {
-		DaemonStarter.rlog.info(DaemonStarter.daemonName + " stopped!");
 		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPED);
+		DaemonStarter.rlog.info(DaemonStarter.daemonName + " stopped!");
 		DaemonStarter.getLifecycleListener().stopped();
 	}
 	
 	private static void notifyStarted() {
-		DaemonStarter.rlog.info(DaemonStarter.daemonName + " started!");
 		DaemonStarter.currentPhase.set(LifecyclePhase.STARTED);
+		DaemonStarter.rlog.info(DaemonStarter.daemonName + " started!");
 		DaemonStarter.getLifecycleListener().started();
 	}
 	
@@ -298,24 +299,49 @@ public class DaemonStarter {
 		DaemonStarter.rlog.info(String.format("Changed the the log level to %s", logLevel));
 		
 		if (!DaemonStarter.isDevelopmentMode()) {
+			final String fileEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_FILE, "true");
+			final String syslogEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_SYSLOG, "true");
+			final String logglyEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LOGGLY, "false");
+			
 			final String host = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_HOST, "localhost");
 			final String facility = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_FACILITY, "LOCAL0");
-			final String logfile = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_FILE, "true");
-			final Level syslogLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_LEVEL), Level.WARN);
+			final Level syslogLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_LEVEL), Level.INFO);
 			
-			if ((logfile != null) && logfile.equals("false")) {
+			if ((fileEnabled != null) && fileEnabled.equals("false")) {
 				DaemonStarter.rlog.removeAppender(DaemonStarter.darofi);
+				DaemonStarter.darofi = null;
+				DaemonStarter.rlog.info(String.format("Deactivated the FILE Appender"));
 			} else {
 				DaemonStarter.darofi.setThreshold(logLevel);
 				DaemonStarter.darofi.activateOptions();
 			}
 			
-			DaemonStarter.syslog.setSyslogHost(host);
-			DaemonStarter.syslog.setFacility(facility);
-			DaemonStarter.syslog.setThreshold(syslogLevel);
-			DaemonStarter.syslog.activateOptions();
+			if ((syslogEnabled != null) && syslogEnabled.equals("false")) {
+				DaemonStarter.rlog.removeAppender(DaemonStarter.syslog);
+				DaemonStarter.syslog = null;
+				DaemonStarter.rlog.info(String.format("Deactivated the SYSLOG Appender"));
+			} else {
+				DaemonStarter.syslog.setSyslogHost(host);
+				DaemonStarter.syslog.setFacility(facility);
+				DaemonStarter.syslog.setThreshold(syslogLevel);
+				DaemonStarter.syslog.activateOptions();
+				DaemonStarter.rlog.info(String.format("Changed the SYSLOG Appender to host %s and facility %s", host, facility));
+			}
 			
-			DaemonStarter.rlog.info(String.format("Changed the SYSLOG Appender to host %s and facility %s", host, facility));
+			if ((logglyEnabled != null) && logglyEnabled.equals("false")) {
+				DaemonStarter.loggly = null;
+				DaemonStarter.rlog.info(String.format("Deactivated the LOGGLY Appender"));
+			} else {
+				final String token = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGLY_TOKEN);
+				if ((token == null) || token.isEmpty()) {
+					DaemonStarter.rlog.error("Missing loggly token but loggly is activated");
+				} else {
+					final String tags = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGLY_TAGS);
+					DaemonStarter.loggly = new LogglyAppender(token, tags);
+					DaemonStarter.loggly.activateOptions();
+					DaemonStarter.rlog.addAppender(DaemonStarter.loggly);
+				}
+			}
 		}
 	}
 	
