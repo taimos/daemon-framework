@@ -18,7 +18,7 @@ public class LogglyTest extends DaemonLifecycleAdapter {
 		DaemonStarter.startDaemon("foobar", new LogglyTest());
 		
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(15000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.log4j.AppenderSkeleton;
@@ -18,6 +22,10 @@ public class LogglyAppender extends AppenderSkeleton {
 	
 	private String url;
 	
+	private LinkedBlockingQueue<LoggingEvent> eventQueue = new LinkedBlockingQueue<>();
+	
+	private Executor executor = Executors.newSingleThreadExecutor();
+	
 	
 	/**
 	 * @param token the customer token
@@ -28,6 +36,26 @@ public class LogglyAppender extends AppenderSkeleton {
 			_url += "/tag/" + tags;
 		}
 		this.url = _url + "/";
+		this.executor.execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				while (!LogglyAppender.this.closed) {
+					try {
+						LoggingEvent event = LogglyAppender.this.eventQueue.poll(5, TimeUnit.SECONDS);
+						if (event != null) {
+							String json = LogglyAppender.this.createJSON(event);
+							HttpResponse post = WS.url(LogglyAppender.this.url).contentType("application/json").body(json).post();
+							if (post.getStatusLine().getStatusCode() != 200) {
+								System.err.println("Failed to log to loggly");
+							}
+						}
+					} catch (Exception e) {
+						System.err.println("Failed to log to loggly");
+					}
+				}
+			}
+		});
 	}
 	
 	@Override
@@ -42,10 +70,10 @@ public class LogglyAppender extends AppenderSkeleton {
 	
 	@Override
 	protected void append(LoggingEvent event) {
-		String json = this.createJSON(event);
-		HttpResponse post = WS.url(this.url).contentType("application/json").body(json).post();
-		if (post.getStatusLine().getStatusCode() != 200) {
-			System.err.println("Failed to log to loggly");
+		try {
+			this.eventQueue.put(event);
+		} catch (InterruptedException e) {
+			System.err.println("Failed to append event");
 		}
 	}
 	
