@@ -59,7 +59,7 @@ public class LogglyAppender extends AppenderSkeleton {
 	
 	@Override
 	public void close() {
-		//
+		this.closed = true;
 	}
 	
 	@Override
