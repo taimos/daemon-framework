@@ -22,7 +22,7 @@ public class LogglyAppender extends AppenderSkeleton {
 	
 	private String url;
 	
-	private LinkedBlockingQueue<LoggingEvent> eventQueue = new LinkedBlockingQueue<>();
+	private LinkedBlockingQueue<String> eventQueue = new LinkedBlockingQueue<>();
 	
 	private Executor executor = Executors.newSingleThreadExecutor();
 	
@@ -42,9 +42,8 @@ public class LogglyAppender extends AppenderSkeleton {
 			public void run() {
 				while (!LogglyAppender.this.closed) {
 					try {
-						LoggingEvent event = LogglyAppender.this.eventQueue.poll(5, TimeUnit.SECONDS);
-						if (event != null) {
-							String json = LogglyAppender.this.createJSON(event);
+						String json = LogglyAppender.this.eventQueue.poll(5, TimeUnit.SECONDS);
+						if (json != null) {
 							HttpResponse post = WS.url(LogglyAppender.this.url).contentType("application/json").body(json).post();
 							if (post.getStatusLine().getStatusCode() != 200) {
 								System.err.println("Failed to log to loggly");
@@ -71,7 +70,7 @@ public class LogglyAppender extends AppenderSkeleton {
 	@Override
 	protected void append(LoggingEvent event) {
 		try {
-			this.eventQueue.put(event);
+			this.eventQueue.put(this.createJSON(event));
 		} catch (InterruptedException e) {
 			System.err.println("Failed to append event");
 		}
