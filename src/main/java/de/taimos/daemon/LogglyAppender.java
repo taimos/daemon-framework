@@ -44,13 +44,14 @@ public class LogglyAppender extends AppenderSkeleton {
 					try {
 						String json = LogglyAppender.this.eventQueue.poll(5, TimeUnit.SECONDS);
 						if (json != null) {
-							HttpResponse post = WS.url(LogglyAppender.this.url).contentType("application/json").body(json).post();
+							HttpResponse post = WS.url(LogglyAppender.this.url).timeout(10000).contentType("application/json").body(json).post();
 							if (post.getStatusLine().getStatusCode() != 200) {
 								System.err.println("Failed to log to loggly");
 							}
 						}
 					} catch (Exception e) {
 						System.err.println("Failed to log to loggly");
+						e.printStackTrace();
 					}
 				}
 			}
