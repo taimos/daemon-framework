@@ -2,6 +2,8 @@
 
 Little framework to create Java programs that behave like Linux daemons.
 
+[![Build Status](https://travis-ci.org/taimos/daemon-framework.png)](https://travis-ci.org/taimos/daemon-framework)
+
 # Getting started
 
 There are some small steps to follow to create a Linux daemon with Java:
