@@ -2,7 +2,7 @@ package de.taimos.daemon;
 
 import java.util.Map;
 
-import de.taimos.daemon.properties.ConfigServerPropertyProvider;
+import de.taimos.daemon.properties.CloudConductorPropertyProvider;
 import de.taimos.daemon.properties.EmptyPropertyProvider;
 import de.taimos.daemon.properties.FilePropertyProvider;
 import de.taimos.daemon.properties.IPropertyProvider;
@@ -74,7 +74,8 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 		case DaemonProperties.PROPERTY_SOURCE_FILE:
 			return new FilePropertyProvider(System.getProperty(DaemonProperties.PROPERTY_LOCATION));
 		case DaemonProperties.PROPERTY_SOURCE_CS:
-			return new ConfigServerPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_SERVER), System.getProperty(DaemonProperties.PROPERTY_TEMPLATE));
+		case DaemonProperties.PROPERTY_SOURCE_C2:
+			return new CloudConductorPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_SERVER), System.getProperty(DaemonProperties.PROPERTY_TEMPLATE));
 		case DaemonProperties.PROPERTY_SOURCE_HTTP:
 			return new SimpleHTTPPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_LOCATION));
 		default:

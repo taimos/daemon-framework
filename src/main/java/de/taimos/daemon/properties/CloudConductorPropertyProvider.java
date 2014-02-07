@@ -6,20 +6,20 @@ import de.taimos.daemon.DaemonStarter;
 import de.taimos.httputils.HTTPRequest;
 import de.taimos.httputils.WS;
 
-public class ConfigServerPropertyProvider extends HTTPPropertyProvider {
+public class CloudConductorPropertyProvider extends HTTPPropertyProvider {
 	
 	private String server;
 	private String template;
 	
 	
-	public ConfigServerPropertyProvider(String server, String template) {
+	public CloudConductorPropertyProvider(String server, String template) {
 		this.server = server;
 		this.template = template;
 	}
 	
 	@Override
 	protected String getDescription() {
-		return String.format("Config Server %s with template %s", this.server, this.template);
+		return String.format("CloudConductor Server %s with template %s", this.server, this.template);
 	}
 	
 	@Override
