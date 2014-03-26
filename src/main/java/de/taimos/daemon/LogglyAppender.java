@@ -16,6 +16,12 @@ import org.apache.log4j.spi.LoggingEvent;
 
 import de.taimos.httputils.WS;
 
+/**
+ * Appender for the Loggly log service
+ * 
+ * @author hoegertn
+ * 
+ */
 public class LogglyAppender extends AppenderSkeleton {
 	
 	private static final String BASE_URL = "https://logs-01.loggly.com/inputs/";
@@ -29,6 +35,7 @@ public class LogglyAppender extends AppenderSkeleton {
 	
 	/**
 	 * @param token the customer token
+	 * @param tags the loggy tags
 	 */
 	public LogglyAppender(String token, String tags) {
 		String _url = LogglyAppender.BASE_URL + token;

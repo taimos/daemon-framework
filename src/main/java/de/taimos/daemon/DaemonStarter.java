@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -350,6 +351,14 @@ public class DaemonStarter {
 	 */
 	public static void stopService() {
 		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPING);
+		Executors.newScheduledThreadPool(1).schedule(new Runnable() {
+			
+			@Override
+			public void run() {
+				DaemonStarter.rlog.error("Failed to stop gracefully");
+				DaemonStarter.abortSystem();
+			}
+		}, 10, TimeUnit.SECONDS);
 		DaemonStarter.getLifecycleListener().stopping();
 		DaemonStarter.daemon.stop();
 	}
