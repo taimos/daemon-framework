@@ -6,7 +6,7 @@ import org.apache.log4j.net.SyslogAppender;
 
 /**
  * @author hoegertn
- * 
+ *
  */
 public interface DaemonProperties {
 	
@@ -40,13 +40,13 @@ public interface DaemonProperties {
 	/** the name of the daemon */
 	public static final String SERVICE_NAME = "serviceName";
 	
-	/** the property source type (aws, cs, c2, file, http) */
+	/** the property source type (aws, c2, file, http) */
 	public static final String PROPERTY_SOURCE = "property.source";
 	/** the property location (file name or URL) */
 	public static final String PROPERTY_LOCATION = "property.location";
-	/** the CloudConductor server URL if property.source=cs|c2 */
+	/** the CloudConductor server URL if property.source=c2 */
 	public static final String PROPERTY_SERVER = "property.server";
-	/** the CloudConductor template if property.source=cs|c2 */
+	/** the CloudConductor template if property.source=c2 */
 	public static final String PROPERTY_TEMPLATE = "property.template";
 	
 	/** the property source type - Amazon Web Services UserData */
@@ -55,8 +55,6 @@ public interface DaemonProperties {
 	public static final String PROPERTY_SOURCE_FILE = "file";
 	/** the property source type - HTTP GET resource */
 	public static final String PROPERTY_SOURCE_HTTP = "http";
-	/** the property source type - Cinovo Config Server */
-	public static final String PROPERTY_SOURCE_CS = "cs";
 	/** the property source type - Cinovo CloudConductor Server */
 	public static final String PROPERTY_SOURCE_C2 = "c2";
 }

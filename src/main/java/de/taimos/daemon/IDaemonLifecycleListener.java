@@ -4,22 +4,22 @@ import java.util.Map;
 
 /**
  * Listener for the lifecycle of a system daemon
- * 
+ *
  * @author hoegertn
- * 
+ *
  */
 public interface IDaemonLifecycleListener {
 	
 	/**
 	 * Will be called to allow for custom startup code
-	 * 
+	 *
 	 * @throws Exception if start failed
 	 */
 	void doStart() throws Exception;
 	
 	/**
 	 * Will be called to allow for custom shutdown code
-	 * 
+	 *
 	 * @throws Exception if shutdown failed
 	 */
 	void doStop() throws Exception;
@@ -51,7 +51,7 @@ public interface IDaemonLifecycleListener {
 	
 	/**
 	 * This method is called if an error occurs. It provides the current {@link LifecyclePhase} and the exception
-	 * 
+	 *
 	 * @param phase the phase the error occured in
 	 * @param exception the occured exception
 	 */
@@ -62,4 +62,9 @@ public interface IDaemonLifecycleListener {
 	 */
 	Map<String, String> loadProperties();
 	
+	/**
+	 * @return the number of seconds to wait for termination before forcefully stopping the daemon
+	 */
+	int getShutdownTimeoutSeconds();
+
 }

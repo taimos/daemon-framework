@@ -11,9 +11,9 @@ import de.taimos.daemon.properties.UserDataPropertyProvider;
 
 /**
  * Adapter for {@link IDaemonLifecycleListener}
- * 
+ *
  * @author hoegertn
- * 
+ *
  */
 public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	
@@ -64,6 +64,11 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 		return this.getPropertyProvider().loadProperties();
 	}
 	
+	@Override
+	public int getShutdownTimeoutSeconds() {
+		return 10;
+	}
+	
 	/**
 	 * @return the property provider
 	 */
@@ -73,7 +78,6 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 			return new UserDataPropertyProvider();
 		case DaemonProperties.PROPERTY_SOURCE_FILE:
 			return new FilePropertyProvider(System.getProperty(DaemonProperties.PROPERTY_LOCATION));
-		case DaemonProperties.PROPERTY_SOURCE_CS:
 		case DaemonProperties.PROPERTY_SOURCE_C2:
 			return new CloudConductorPropertyProvider(System.getProperty(DaemonProperties.PROPERTY_SERVER), System.getProperty(DaemonProperties.PROPERTY_TEMPLATE));
 		case DaemonProperties.PROPERTY_SOURCE_HTTP:

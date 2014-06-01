@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package de.taimos.daemon;
 
@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,9 +26,9 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 /**
- * 
+ *
  * @author hoegertn
- * 
+ *
  */
 @SuppressWarnings("restriction")
 public class DaemonStarter {
@@ -70,7 +71,7 @@ public class DaemonStarter {
 	}
 	
 	/**
-	 * 
+	 *
 	 * @return the hostname of the running machine
 	 */
 	public static String getHostname() {
@@ -108,7 +109,7 @@ public class DaemonStarter {
 	/**
 	 * Starts the daemon and provides feedback through the life-cycle listener<br>
 	 * <br>
-	 * 
+	 *
 	 * @param _daemonName the name of this daemon
 	 * @param _lifecycleListener the {@link IDaemonLifecycleListener} to use for phase call-backs
 	 */
@@ -351,16 +352,27 @@ public class DaemonStarter {
 	 */
 	public static void stopService() {
 		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPING);
-		Executors.newScheduledThreadPool(1).schedule(new Runnable() {
+		final CountDownLatch cdl = new CountDownLatch(1);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			
 			@Override
 			public void run() {
+				DaemonStarter.getLifecycleListener().stopping();
+				DaemonStarter.daemon.stop();
+				cdl.countDown();
+			}
+		});
+
+		try {
+			int timeout = DaemonStarter.lifecycleListener.get().getShutdownTimeoutSeconds();
+			if (!cdl.await(timeout, TimeUnit.SECONDS)) {
 				DaemonStarter.rlog.error("Failed to stop gracefully");
 				DaemonStarter.abortSystem();
 			}
-		}, 10, TimeUnit.SECONDS);
-		DaemonStarter.getLifecycleListener().stopping();
-		DaemonStarter.daemon.stop();
+		} catch (InterruptedException e) {
+			DaemonStarter.rlog.error("Failure awaiting stop", e);
+		}
+
 	}
 	
 	// I KNOW WHAT I AM DOING
@@ -404,7 +416,7 @@ public class DaemonStarter {
 	
 	/**
 	 * Abort the daemon
-	 * 
+	 *
 	 * @param error the error causing the abortion
 	 */
 	public static void abortSystem(final Throwable error) {
