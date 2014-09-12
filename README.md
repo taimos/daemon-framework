@@ -1,6 +1,6 @@
 # Taimos daemon-framework
 
-Little framework to create Java programs that behave like Linux daemons.
+Little framework to create Java programs that behave like Linux daemons/Windows services.
 
 [![Build Status](https://travis-ci.org/taimos/daemon-framework.png)](https://travis-ci.org/taimos/daemon-framework)
 
@@ -12,7 +12,7 @@ There are some small steps to follow to create a Linux daemon with Java:
 2. Call the DaemonStarter from your main method
 3. Customize your init-script
 
-If you want to run the program in _prdocution mode_ make sure you start it with ``-DdevelopmentMode=false``.
+If you want to run the program in _prodcution mode_ make sure you start it with ``-DdevelopmentMode=false``.
 
 In development mode the program's behavior will differ in some small points:
 
@@ -69,9 +69,9 @@ In your _main_ method just call startDaemon to run the daemon framework. You hav
 DaemonStarter.startDaemon("my-service-name", new MyLifecycleAdapter());
 ```
 
-## Customize init-script
+## Customize init-script (Linux)
 
-You just have to create a copy of _initscript_ from the projects root folder and customize it. For basic usage it is enough to change the variables on top of the script
+You just have to create a copy of _initscript_ from the projects _linux_ folder and customize it. For basic usage it is enough to change the variables on top of the script
 
 ### progname
 
@@ -97,6 +97,35 @@ The name of the jarfile as it is found in $RUNDIR. The script calls java -jar <j
 
 Some Java options like memory size etc.
 
+## Customize service setup (Windows)
+
+You just have to create a copy of the contents of the _windows_ folder and customize it. For basic usage it is enough to change the variables on top of the script _install.bat_ and to rename the _service.exe_ file.
+
+set svcName=CloudConductor
+set svcFullName="CloudConductor Server"
+set svcDesc="Cinovo CloudConductor"
+set svcJAR=de.cinovo.cloudconductor.cloudconductor-server.jar
+set svcStarter=de.cinovo.cloudconductor.server.ServerStarter
+
+### svcName
+
+The short name of the service (no spaces)
+
+### svcFullName
+
+The full name of the service
+
+### svcDesc
+
+The description of the service
+
+### svcJAR
+
+The name of the jarfile as it is found in the installation folder.
+
+### svcStarter
+
+The java main class to start the service
 
 
 
