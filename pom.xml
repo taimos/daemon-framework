@@ -25,7 +25,7 @@
 	<!-- Shared version number properties -->
 	<properties>
 		<slf4j.version>1.7.7</slf4j.version>
-		<http.version>1.5</http.version>
+		<http.version>1.6</http.version>
 	</properties>
 	<dependencies>
 		<dependency>
