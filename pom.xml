@@ -6,7 +6,7 @@
 		<version>2</version>
 	</parent>
 	<artifactId>daemon-framework</artifactId>
-	<version>1.7-SNAPSHOT</version>
+	<version>1.7</version>
 	<name>Daemon Library</name>
 	<description>Library providing daemon functionality</description>
 	<url>https://github.com/taimos/daemon-framework</url>
@@ -15,7 +15,7 @@
 		<connection>scm:git:git@github.com:taimos/daemon-framework.git</connection>
 		<developerConnection>scm:git:git@github.com:taimos/daemon-framework.git</developerConnection>
 		<url>scm:git:git@github.com:taimos/daemon-framework.git</url>
-		<tag>HEAD</tag>
+		<tag>v1.7</tag>
 	</scm>
 	<issueManagement>
 		<system>github</system>
