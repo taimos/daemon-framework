@@ -1,5 +1,6 @@
 package de.taimos.daemon;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import de.taimos.daemon.properties.CloudConductorPropertyProvider;
@@ -61,12 +62,25 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	
 	@Override
 	public Map<String, String> loadProperties() {
-		return this.getPropertyProvider().loadProperties();
+		Map<String, String> properties = new HashMap<>();
+		this.loadBasicProperties(properties);
+		properties.putAll(this.getPropertyProvider().loadProperties());
+		return properties;
 	}
 	
 	@Override
 	public int getShutdownTimeoutSeconds() {
 		return 10;
+	}
+	
+	/**
+	 * Override to set properties to be used in the daemon without specifying them in the {@link IPropertyProvider}
+	 * 
+	 * @return basic properties
+	 */
+	@SuppressWarnings("unused")
+	protected void loadBasicProperties(Map<String, String> map) {
+		// Override if needed
 	}
 	
 	/**
