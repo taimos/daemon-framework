@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.log4j.ConsoleAppender;
@@ -43,13 +42,14 @@ public class DaemonStarter {
 	
 	private static final DaemonManager daemon = new DaemonManager();
 	
-	private static final AtomicBoolean devMode = new AtomicBoolean();
+	private static final AtomicReference<String> startupMode = new AtomicReference<>("");
 	
 	private static final Logger rlog = Logger.getRootLogger();
 	
 	private static SyslogAppender syslog;
 	private static DailyRollingFileAppender darofi;
 	private static LogglyAppender loggly;
+	private static ConsoleAppender console;
 	
 	private static final AtomicReference<IDaemonLifecycleListener> lifecycleListener = new AtomicReference<>();
 	
@@ -60,7 +60,28 @@ public class DaemonStarter {
 	 * @return if the system is in development mode
 	 */
 	public static boolean isDevelopmentMode() {
-		return DaemonStarter.devMode.get();
+		return DaemonStarter.startupMode.get().equals(DaemonProperties.STARTUP_MODE_DEV);
+	}
+	
+	/**
+	 * @return if the system is in start mode
+	 */
+	public static boolean isStartMode() {
+		return DaemonStarter.startupMode.get().equals(DaemonProperties.STARTUP_MODE_START);
+	}
+	
+	/**
+	 * @return if the system is in run mode
+	 */
+	public static boolean isRunMode() {
+		return DaemonStarter.startupMode.get().equals(DaemonProperties.STARTUP_MODE_RUN);
+	}
+	
+	/**
+	 * @return the startup mode
+	 */
+	public static String getStartupMode() {
+		return DaemonStarter.startupMode.get();
 	}
 	
 	/**
@@ -136,8 +157,7 @@ public class DaemonStarter {
 		DaemonStarter.addProperty(DaemonProperties.SERVICE_NAME, _daemonName);
 		DaemonStarter.lifecycleListener.set(_lifecycleListener);
 		
-		final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE, "true");
-		DaemonStarter.devMode.set((devmode == null) || devmode.equals("true"));
+		DaemonStarter.startupMode.set(DaemonStarter.findStartupMode());
 		
 		// Configure the logging subsystem
 		DaemonStarter.configureLogging();
@@ -184,6 +204,20 @@ public class DaemonStarter {
 		System.exit(0);
 	}
 	
+	@SuppressWarnings("deprecation")
+	private static String findStartupMode() {
+		final String startmode = System.getProperty(DaemonProperties.STARTUP_MODE);
+		if (startmode == null) {
+			final String devmode = System.getProperty(DaemonProperties.DEVELOPMENT_MODE);
+			// check legacy mode
+			if ((devmode != null) && !devmode.equals("true")) {
+				return DaemonProperties.STARTUP_MODE_START;
+			}
+			return DaemonProperties.STARTUP_MODE_DEV;
+		}
+		return startmode;
+	}
+	
 	private static void notifyStopped() {
 		DaemonStarter.currentPhase.set(LifecyclePhase.STOPPED);
 		DaemonStarter.rlog.info(DaemonStarter.daemonName + " stopped!");
@@ -200,7 +234,7 @@ public class DaemonStarter {
 		if (DaemonStarter.isDevelopmentMode()) {
 			DaemonStarter.rlog.info("Running in development mode");
 		} else {
-			DaemonStarter.rlog.info("Running in production mode");
+			DaemonStarter.rlog.info("Running in production mode: " + DaemonStarter.startupMode.get());
 		}
 		
 		DaemonStarter.rlog.info("Running with instance id: " + DaemonStarter.instanceId);
@@ -279,14 +313,15 @@ public class DaemonStarter {
 				DaemonStarter.syslog.setThreshold(Level.INFO);
 				DaemonStarter.syslog.activateOptions();
 				DaemonStarter.rlog.addAppender(DaemonStarter.syslog);
-			} else {
-				// CONSOLE is only active in development
-				final ConsoleAppender console = new ConsoleAppender();
-				console.setName("CONSOLE");
-				console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
-				console.setTarget(ConsoleAppender.SYSTEM_OUT);
-				console.activateOptions();
-				DaemonStarter.rlog.addAppender(console);
+			}
+			if (DaemonStarter.isDevelopmentMode() || DaemonStarter.isRunMode()) {
+				// CONSOLE is only active in development and run mode
+				DaemonStarter.console = new ConsoleAppender();
+				DaemonStarter.console.setName("CONSOLE");
+				DaemonStarter.console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
+				DaemonStarter.console.setTarget(ConsoleAppender.SYSTEM_OUT);
+				DaemonStarter.console.activateOptions();
+				DaemonStarter.rlog.addAppender(DaemonStarter.console);
 			}
 			
 		} catch (final Exception e) {
@@ -297,6 +332,7 @@ public class DaemonStarter {
 	
 	private static void amendLogAppender() {
 		final Level logLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LEVEL), Level.INFO);
+		final String logPattern = System.getProperty(DaemonProperties.LOGGER_PATTERN, "%d{HH:mm:ss,SSS} %-5p %c %x - %m%n");
 		DaemonStarter.rlog.setLevel(logLevel);
 		DaemonStarter.rlog.info(String.format("Changed the the log level to %s", logLevel));
 		
@@ -315,6 +351,7 @@ public class DaemonStarter {
 				DaemonStarter.rlog.info(String.format("Deactivated the FILE Appender"));
 			} else {
 				DaemonStarter.darofi.setThreshold(logLevel);
+				DaemonStarter.darofi.setLayout(new PatternLayout(logPattern));
 				DaemonStarter.darofi.activateOptions();
 			}
 			
@@ -345,6 +382,11 @@ public class DaemonStarter {
 				}
 			}
 		}
+		if (DaemonStarter.isDevelopmentMode() || DaemonStarter.isRunMode()) {
+			DaemonStarter.console.setLayout(new PatternLayout(logPattern));
+			DaemonStarter.console.setThreshold(logLevel);
+			DaemonStarter.console.activateOptions();
+		}
 	}
 	
 	/**
@@ -362,7 +404,7 @@ public class DaemonStarter {
 				cdl.countDown();
 			}
 		});
-
+		
 		try {
 			int timeout = DaemonStarter.lifecycleListener.get().getShutdownTimeoutSeconds();
 			if (!cdl.await(timeout, TimeUnit.SECONDS)) {
@@ -372,38 +414,67 @@ public class DaemonStarter {
 		} catch (InterruptedException e) {
 			DaemonStarter.rlog.error("Failure awaiting stop", e);
 		}
-
+		
 	}
 	
 	// I KNOW WHAT I AM DOING
 	private final static void handleSignals() {
-		if (!System.getProperty("os.name").contains("Win") && !DaemonStarter.isDevelopmentMode()) {
-			// handle SIGHUP to prevent process to get killed when exiting the tty
-			Signal.handle(new Signal("HUP"), new SignalHandler() {
-				
-				@Override
-				public void handle(final Signal arg0) {
-					// Nothing to do here
-				}
-			});
+		if (DaemonStarter.isStartMode() || DaemonStarter.isRunMode()) {
+			try {
+				// handle SIGHUP to prevent process to get killed when exiting the tty
+				Signal.handle(new Signal("HUP"), new SignalHandler() {
+					
+					@Override
+					public void handle(final Signal arg0) {
+						// Nothing to do here
+						System.out.println("SIG INT");
+					}
+				});
+			} catch (IllegalArgumentException e) {
+				System.err.println("Signal HUP not supported");
+			}
 			
-			// handle SIGTERM to notify the program to stop
-			Signal.handle(new Signal("TERM"), new SignalHandler() {
-				
-				@Override
-				public void handle(final Signal arg0) {
-					DaemonStarter.stopService();
-				}
-			});
+			try {
+				// handle SIGTERM to notify the program to stop
+				Signal.handle(new Signal("TERM"), new SignalHandler() {
+					
+					@Override
+					public void handle(final Signal arg0) {
+						System.out.println("SIG TERM");
+						DaemonStarter.stopService();
+					}
+				});
+			} catch (IllegalArgumentException e) {
+				System.err.println("Signal TERM not supported");
+			}
 			
-			// handle SIGUSR2 to notify the life-cycle listener
-			Signal.handle(new Signal("USR2"), new SignalHandler() {
-				
-				@Override
-				public void handle(final Signal arg0) {
-					DaemonStarter.getLifecycleListener().signalUSR2();
-				}
-			});
+			try {
+				// handle SIGINT to notify the program to stop
+				Signal.handle(new Signal("INT"), new SignalHandler() {
+					
+					@Override
+					public void handle(final Signal arg0) {
+						System.out.println("SIG INT");
+						DaemonStarter.stopService();
+					}
+				});
+			} catch (IllegalArgumentException e) {
+				System.err.println("Signal INT not supported");
+			}
+			
+			try {
+				// handle SIGUSR2 to notify the life-cycle listener
+				Signal.handle(new Signal("USR2"), new SignalHandler() {
+					
+					@Override
+					public void handle(final Signal arg0) {
+						System.out.println("SIG USR2");
+						DaemonStarter.getLifecycleListener().signalUSR2();
+					}
+				});
+			} catch (IllegalArgumentException e) {
+				System.err.println("Signal USR2 not supported");
+			}
 		}
 	}
 	

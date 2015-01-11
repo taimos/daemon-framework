@@ -12,12 +12,19 @@ There are some small steps to follow to create a Linux daemon with Java:
 2. Call the DaemonStarter from your main method
 3. Customize your init-script
 
-If you want to run the program in _prodcution mode_ make sure you start it with ``-DdevelopmentMode=false``.
+There are three different startup modes which can be specified with ``-DstartupMode=<mode>``:
+
+- start: intended for background daemons
+- run: intended for foreground daemons
+- dev: start in development mode
+
+The default mode is ``dev``. If you want to run the program in _prodcution mode_ make sure you start it with ``-DstartupMode=start`` or ``-DstartupMode=run``.
+
+In start mode the console logging is disabled.
 
 In development mode the program's behavior will differ in some small points:
 
 - Logging uses console instead of syslog and logfile
-- No signal handling is used
 
 
 ## DaemonLifecycleAdapter

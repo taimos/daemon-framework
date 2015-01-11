@@ -10,11 +10,23 @@ import org.apache.log4j.net.SyslogAppender;
  */
 public interface DaemonProperties {
 	
+	/** daemon startup mode (dev|start|run) */
+	public static final String STARTUP_MODE = "startupMode";
+	/** daemon startup mode - Development */
+	public static final String STARTUP_MODE_DEV = "dev";
+	/** daemon startup mode - Start (Daemon) */
+	public static final String STARTUP_MODE_START = "start";
+	/** daemon startup mode - Run (Foreground) */
+	public static final String STARTUP_MODE_RUN = "run";
+	
 	/** daemon is in dev mode (true/false) */
+	@Deprecated
 	public static final String DEVELOPMENT_MODE = "developmentMode";
 	
 	/** the logger level (see {@link Level}) */
 	public static final String LOGGER_LEVEL = "logger.level";
+	/** the logger pattern */
+	public static final String LOGGER_PATTERN = "logger.pattern";
 	
 	/** true to use {@link FileAppender}; false to disable */
 	public static final String LOGGER_FILE = "logger.file";
