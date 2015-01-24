@@ -124,4 +124,5 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 	public static void setup() {
 		System.setProperty(DaemonProperties.LOGGER_CONFIGURER, Log4jLoggingConfigurer.class.getCanonicalName());
 	}
+	
 }

@@ -25,11 +25,13 @@
 
 	<!-- Shared version number properties -->
 	<properties>
-		<slf4j.version>1.7.8</slf4j.version>
+		<slf4j.version>1.7.9</slf4j.version>
 		<http.version>1.6</http.version>
 	</properties>
 	<modules>
 		<module>core</module>
+		<module>log4j</module>
+		<module>spring</module>
 	</modules>
 	<dependencies>
 		<dependency>
