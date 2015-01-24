@@ -14,12 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.net.SyslogAppender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
@@ -44,12 +40,9 @@ public class DaemonStarter {
 	
 	private static final AtomicReference<String> startupMode = new AtomicReference<>("");
 	
-	private static final Logger rlog = Logger.getRootLogger();
+	private static final Logger rlog = LoggerFactory.getLogger(DaemonStarter.class);
 	
-	private static SyslogAppender syslog;
-	private static DailyRollingFileAppender darofi;
-	private static LogglyAppender loggly;
-	private static ConsoleAppender console;
+	private static AtomicReference<ILoggingConfigurer> loggingConfigurer = new AtomicReference<>();
 	
 	private static final AtomicReference<IDaemonLifecycleListener> lifecycleListener = new AtomicReference<>();
 	
@@ -174,8 +167,15 @@ public class DaemonStarter {
 		// Load properties
 		DaemonStarter.initProperties();
 		
-		// Change SYSLOG with properties
-		DaemonStarter.amendLogAppender();
+		// Reconfigure logging with properties
+		try {
+			if (DaemonStarter.loggingConfigurer.get() != null) {
+				DaemonStarter.loggingConfigurer.get().reconfigureLogging();
+			}
+		} catch (final Exception e) {
+			System.err.println("Logger reconfig failed with exception: " + e.getMessage());
+			DaemonStarter.getLifecycleListener().exception(DaemonStarter.currentPhase.get(), e);
+		}
 		
 		// Run custom startup code
 		try {
@@ -202,6 +202,27 @@ public class DaemonStarter {
 		
 		// Exit system with success return code
 		System.exit(0);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static void configureLogging() {
+		String clazz = System.getProperty(DaemonProperties.LOGGER_CONFIGURER);
+		if (clazz != null) {
+			try {
+				Class<ILoggingConfigurer> configurerClazz = (Class<ILoggingConfigurer>) Class.forName(clazz);
+				DaemonStarter.loggingConfigurer.set(configurerClazz.newInstance());
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				DaemonStarter.rlog.warn("No ILoggingConfigurer set");
+			}
+		}
+		try {
+			if (DaemonStarter.loggingConfigurer.get() != null) {
+				DaemonStarter.loggingConfigurer.get().initializeLogging();
+			}
+		} catch (final Exception e) {
+			System.err.println("Logger config failed with exception: " + e.getMessage());
+			DaemonStarter.getLifecycleListener().exception(DaemonStarter.currentPhase.get(), e);
+		}
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -283,110 +304,6 @@ public class DaemonStarter {
 		}
 		DaemonStarter.daemonProperties.setProperty(trimKey, value);
 		System.setProperty(trimKey, value);
-	}
-	
-	private static void configureLogging() {
-		try {
-			// Clear all existing appenders
-			DaemonStarter.rlog.removeAllAppenders();
-			
-			DaemonStarter.rlog.setLevel(Level.INFO);
-			
-			// only use SYSLOG and DAROFI in production mode
-			if (!DaemonStarter.isDevelopmentMode()) {
-				DaemonStarter.darofi = new DailyRollingFileAppender();
-				DaemonStarter.darofi.setName("DAROFI");
-				DaemonStarter.darofi.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
-				DaemonStarter.darofi.setFile("log/" + DaemonStarter.getDaemonName() + ".log");
-				DaemonStarter.darofi.setDatePattern("'.'yyyy-MM-dd");
-				DaemonStarter.darofi.setAppend(true);
-				DaemonStarter.darofi.setThreshold(Level.INFO);
-				DaemonStarter.darofi.activateOptions();
-				DaemonStarter.rlog.addAppender(DaemonStarter.darofi);
-				
-				DaemonStarter.syslog = new SyslogAppender();
-				DaemonStarter.syslog.setName("SYSLOG");
-				DaemonStarter.syslog.setLayout(new PatternLayout(DaemonStarter.getDaemonName() + ": %-5p %c %x - %m%n"));
-				DaemonStarter.syslog.setSyslogHost("localhost");
-				DaemonStarter.syslog.setFacility("LOCAL0");
-				DaemonStarter.syslog.setFacilityPrinting(false);
-				DaemonStarter.syslog.setThreshold(Level.INFO);
-				DaemonStarter.syslog.activateOptions();
-				DaemonStarter.rlog.addAppender(DaemonStarter.syslog);
-			}
-			if (DaemonStarter.isDevelopmentMode() || DaemonStarter.isRunMode()) {
-				// CONSOLE is only active in development and run mode
-				DaemonStarter.console = new ConsoleAppender();
-				DaemonStarter.console.setName("CONSOLE");
-				DaemonStarter.console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
-				DaemonStarter.console.setTarget(ConsoleAppender.SYSTEM_OUT);
-				DaemonStarter.console.activateOptions();
-				DaemonStarter.rlog.addAppender(DaemonStarter.console);
-			}
-			
-		} catch (final Exception e) {
-			System.err.println("Logger config failed with exception: " + e.getMessage());
-			DaemonStarter.getLifecycleListener().exception(DaemonStarter.currentPhase.get(), e);
-		}
-	}
-	
-	private static void amendLogAppender() {
-		final Level logLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LEVEL), Level.INFO);
-		final String logPattern = System.getProperty(DaemonProperties.LOGGER_PATTERN, "%d{HH:mm:ss,SSS} %-5p %c %x - %m%n");
-		DaemonStarter.rlog.setLevel(logLevel);
-		DaemonStarter.rlog.info(String.format("Changed the the log level to %s", logLevel));
-		
-		if (!DaemonStarter.isDevelopmentMode()) {
-			final String fileEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_FILE, "true");
-			final String syslogEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_SYSLOG, "true");
-			final String logglyEnabled = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGER_LOGGLY, "false");
-			
-			final String host = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_HOST, "localhost");
-			final String facility = DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_FACILITY, "LOCAL0");
-			final Level syslogLevel = Level.toLevel(DaemonStarter.daemonProperties.getProperty(DaemonProperties.SYSLOG_LEVEL), Level.INFO);
-			
-			if ((fileEnabled != null) && fileEnabled.equals("false")) {
-				DaemonStarter.rlog.removeAppender(DaemonStarter.darofi);
-				DaemonStarter.darofi = null;
-				DaemonStarter.rlog.info(String.format("Deactivated the FILE Appender"));
-			} else {
-				DaemonStarter.darofi.setThreshold(logLevel);
-				DaemonStarter.darofi.setLayout(new PatternLayout(logPattern));
-				DaemonStarter.darofi.activateOptions();
-			}
-			
-			if ((syslogEnabled != null) && syslogEnabled.equals("false")) {
-				DaemonStarter.rlog.removeAppender(DaemonStarter.syslog);
-				DaemonStarter.syslog = null;
-				DaemonStarter.rlog.info(String.format("Deactivated the SYSLOG Appender"));
-			} else {
-				DaemonStarter.syslog.setSyslogHost(host);
-				DaemonStarter.syslog.setFacility(facility);
-				DaemonStarter.syslog.setThreshold(syslogLevel);
-				DaemonStarter.syslog.activateOptions();
-				DaemonStarter.rlog.info(String.format("Changed the SYSLOG Appender to host %s and facility %s", host, facility));
-			}
-			
-			if ((logglyEnabled != null) && logglyEnabled.equals("false")) {
-				DaemonStarter.loggly = null;
-				DaemonStarter.rlog.info(String.format("Deactivated the LOGGLY Appender"));
-			} else {
-				final String token = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGLY_TOKEN);
-				if ((token == null) || token.isEmpty()) {
-					DaemonStarter.rlog.error("Missing loggly token but loggly is activated");
-				} else {
-					final String tags = DaemonStarter.daemonProperties.getProperty(DaemonProperties.LOGGLY_TAGS);
-					DaemonStarter.loggly = new LogglyAppender(token, tags);
-					DaemonStarter.loggly.activateOptions();
-					DaemonStarter.rlog.addAppender(DaemonStarter.loggly);
-				}
-			}
-		}
-		if (DaemonStarter.isDevelopmentMode() || DaemonStarter.isRunMode()) {
-			DaemonStarter.console.setLayout(new PatternLayout(logPattern));
-			DaemonStarter.console.setThreshold(logLevel);
-			DaemonStarter.console.activateOptions();
-		}
 	}
 	
 	/**
@@ -498,10 +415,10 @@ public class DaemonStarter {
 			DaemonStarter.rlog.error("Custom abort failed", e);
 		}
 		if (error != null) {
-			DaemonStarter.rlog.fatal("Unrecoverable error encountered  --> Exiting : " + error.getMessage());
+			DaemonStarter.rlog.error("Unrecoverable error encountered  --> Exiting : " + error.getMessage());
 			DaemonStarter.getLifecycleListener().exception(LifecyclePhase.ABORTING, error);
 		} else {
-			DaemonStarter.rlog.fatal("Unrecoverable error encountered --> Exiting");
+			DaemonStarter.rlog.error("Unrecoverable error encountered --> Exiting");
 		}
 		// Exit system with failure return code
 		System.exit(1);

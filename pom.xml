@@ -25,10 +25,17 @@
 
 	<!-- Shared version number properties -->
 	<properties>
-		<slf4j.version>1.7.7</slf4j.version>
+		<slf4j.version>1.7.8</slf4j.version>
 		<http.version>1.6</http.version>
 	</properties>
 	<modules>
 		<module>core</module>
 	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+	</dependencies>
 </project>
