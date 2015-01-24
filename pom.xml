@@ -6,7 +6,8 @@
 		<version>2</version>
 	</parent>
 	<artifactId>daemon-framework</artifactId>
-	<version>1.8-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<version>2.0-SNAPSHOT</version>
 	<name>Daemon Library</name>
 	<description>Library providing daemon functionality</description>
 	<url>https://github.com/taimos/daemon-framework</url>
@@ -27,16 +28,7 @@
 		<slf4j.version>1.7.7</slf4j.version>
 		<http.version>1.6</http.version>
 	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>de.taimos</groupId>
-			<artifactId>httputils</artifactId>
-			<version>${http.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>core</module>
+	</modules>
 </project>
