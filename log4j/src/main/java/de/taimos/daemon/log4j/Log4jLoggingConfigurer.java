@@ -121,6 +121,20 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 		}
 	}
 	
+	@Override
+	public void simpleLogging() throws Exception {
+		// Clear all existing appenders
+		this.rlog.removeAllAppenders();
+		this.rlog.setLevel(Level.INFO);
+		
+		this.console = new ConsoleAppender();
+		this.console.setName("CONSOLE");
+		this.console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
+		this.console.setTarget(ConsoleAppender.SYSTEM_OUT);
+		this.console.activateOptions();
+		this.rlog.addAppender(this.console);
+	}
+	
 	public static void setup() {
 		System.setProperty(DaemonProperties.LOGGER_CONFIGURER, Log4jLoggingConfigurer.class.getCanonicalName());
 	}

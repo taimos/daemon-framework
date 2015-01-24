@@ -6,4 +6,6 @@ public interface ILoggingConfigurer {
 	
 	void reconfigureLogging() throws Exception;
 	
+	void simpleLogging() throws Exception;
+	
 }

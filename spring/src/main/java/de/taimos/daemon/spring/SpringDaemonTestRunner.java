@@ -19,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 
+import de.taimos.daemon.ILoggingConfigurer;
+
 public class SpringDaemonTestRunner extends BlockJUnit4ClassRunner {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SpringDaemonTestRunner.class);
@@ -71,6 +73,9 @@ public class SpringDaemonTestRunner extends BlockJUnit4ClassRunner {
 					// Die on missing annotation
 					throw new RuntimeException("Missing @RunnerConfiguration");
 				}
+				
+				ILoggingConfigurer lc = cfgClass.loggingConfigurer().newInstance();
+				lc.simpleLogging();
 				
 				final RunnerConfig cfg;
 				cfg = cfgClass.config().newInstance();
@@ -222,6 +227,11 @@ public class SpringDaemonTestRunner extends BlockJUnit4ClassRunner {
 		 * @return the service name
 		 */
 		String svc();
+		
+		/**
+		 * @return the logging configurer
+		 */
+		Class<? extends ILoggingConfigurer> loggingConfigurer();
 	}
 	
 	/**

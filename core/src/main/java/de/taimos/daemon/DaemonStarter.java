@@ -38,7 +38,7 @@ public class DaemonStarter {
 	
 	private static final DaemonManager daemon = new DaemonManager();
 	
-	private static final AtomicReference<String> startupMode = new AtomicReference<>("");
+	private static final AtomicReference<String> startupMode = new AtomicReference<>("dev");
 	
 	private static final Logger rlog = LoggerFactory.getLogger(DaemonStarter.class);
 	

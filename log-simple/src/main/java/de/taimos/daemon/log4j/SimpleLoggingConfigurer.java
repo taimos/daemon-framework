@@ -29,6 +29,11 @@ public class SimpleLoggingConfigurer implements ILoggingConfigurer {
 		//
 	}
 	
+	@Override
+	public void simpleLogging() throws Exception {
+		this.initializeLogging();
+	}
+	
 	public static void setup() {
 		System.setProperty(DaemonProperties.LOGGER_CONFIGURER, SimpleLoggingConfigurer.class.getCanonicalName());
 	}
