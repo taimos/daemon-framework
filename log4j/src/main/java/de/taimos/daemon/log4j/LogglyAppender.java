@@ -1,4 +1,4 @@
-package de.taimos.daemon;
+package de.taimos.daemon.log4j;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import org.apache.http.HttpResponse;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 
+import de.taimos.daemon.DaemonStarter;
 import de.taimos.httputils.WS;
 
 /**

@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 
+import de.taimos.daemon.log4j.Log4jLoggingConfigurer;
+
 public class Log4jTest extends DaemonLifecycleAdapter {
 	
 	private static final Logger log = Logger.getRootLogger();

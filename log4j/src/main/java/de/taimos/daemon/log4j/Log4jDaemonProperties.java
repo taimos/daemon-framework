@@ -1,4 +1,4 @@
-package de.taimos.daemon;
+package de.taimos.daemon.log4j;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
