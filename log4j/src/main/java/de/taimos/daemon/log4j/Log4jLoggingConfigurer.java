@@ -108,7 +108,10 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 					this.rlog.error("Missing loggly token but loggly is activated");
 				} else {
 					final String tags = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGLY_TAGS);
-					this.loggly = new LogglyAppender(token, tags);
+					this.loggly = new LogglyAppender();
+					this.loggly.setToken(token);
+					this.loggly.setTags(tags);
+					this.loggly.setLayout(new JSONLayout());
 					this.loggly.activateOptions();
 					this.rlog.addAppender(this.loggly);
 				}
