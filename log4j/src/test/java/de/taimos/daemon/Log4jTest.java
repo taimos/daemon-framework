@@ -32,6 +32,7 @@ public class Log4jTest extends DaemonLifecycleAdapter {
 		super.started();
 		
 		Log4jTest.LOGGER.info("Message");
+		Log4jTest.LOGGER.info("Message with \"quote\" in text");
 		Log4jTest.LOGGER.warn("Warning", new RuntimeException("Failed"));
 		
 		MDC.put("requestID", UUID.randomUUID().toString());

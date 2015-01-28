@@ -1,7 +1,9 @@
 package de.taimos.daemon.log4j;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,6 +30,11 @@ public class JSONLayout extends Layout {
 		return false;
 	}
 	
+	@Override
+	public String getContentType() {
+		return "application/json";
+	}
+	
 	private String createJSON(LoggingEvent event) {
 		Map<String, Object> log = new HashMap<>();
 		log.put("daemon", DaemonStarter.getDaemonName());
@@ -41,14 +48,20 @@ public class JSONLayout extends Layout {
 		log.put("thread", event.getThreadName());
 		
 		if (event.getThrowableInformation() != null) {
-			String[] throwableStrRep = event.getThrowableInformation().getThrowableStrRep();
-			log.put("stacktrace", throwableStrRep);
+			Throwable throwable = event.getThrowableInformation().getThrowable();
+			List<String> stacktrace = new ArrayList<String>();
+			log.put("throwable", throwable.toString());
+			for (StackTraceElement ste : throwable.getStackTrace()) {
+				stacktrace.add(ste.toString());
+			}
+			log.put("stacktrace", stacktrace);
 		}
 		if (event.getProperties() != null) {
 			log.put("mdc", event.getProperties());
 		}
 		StringBuilder sb = new StringBuilder();
 		this.addObject(sb, log);
+		sb.append(Layout.LINE_SEP);
 		return sb.toString();
 	}
 	
@@ -89,10 +102,9 @@ public class JSONLayout extends Layout {
 			}
 		}
 		sb.append("]");
-		
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void addValue(StringBuilder sb, Object value) {
 		if (value instanceof String) {
 			sb.append("\"");
@@ -102,6 +114,8 @@ public class JSONLayout extends Layout {
 			this.addObject(sb, (Map<String, Object>) value);
 		} else if (value instanceof Object[]) {
 			this.addArray(sb, (Object[]) value);
+		} else if (value instanceof List) {
+			this.addArray(sb, ((List) value).toArray());
 		} else {
 			throw new RuntimeException("Invalid value: " + value);
 		}

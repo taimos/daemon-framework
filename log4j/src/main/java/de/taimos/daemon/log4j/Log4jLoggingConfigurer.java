@@ -18,6 +18,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 	private SyslogAppender syslog;
 	private DailyRollingFileAppender darofi;
 	private LogglyAppender loggly;
+	private LogentriesAppender logentries;
 	private ConsoleAppender console;
 	
 	
@@ -72,10 +73,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 			final String fileEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_FILE, "true");
 			final String syslogEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_SYSLOG, "true");
 			final String logglyEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_LOGGLY, "false");
-			
-			final String host = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_HOST, "localhost");
-			final String facility = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_FACILITY, "LOCAL0");
-			final Level syslogLevel = Level.toLevel(DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_LEVEL), Level.INFO);
+			final String logentriesEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_LOGENTRIES, "false");
 			
 			if ((fileEnabled != null) && fileEnabled.equals("false")) {
 				this.rlog.removeAppender(this.darofi);
@@ -92,6 +90,10 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 				this.syslog = null;
 				this.rlog.info(String.format("Deactivated the SYSLOG Appender"));
 			} else {
+				final String host = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_HOST, "localhost");
+				final String facility = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_FACILITY, "LOCAL0");
+				final Level syslogLevel = Level.toLevel(DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_LEVEL), Level.INFO);
+				
 				this.syslog.setSyslogHost(host);
 				this.syslog.setFacility(facility);
 				this.syslog.setThreshold(syslogLevel);
@@ -114,6 +116,22 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 					this.loggly.setLayout(new JSONLayout());
 					this.loggly.activateOptions();
 					this.rlog.addAppender(this.loggly);
+				}
+			}
+			
+			if ((logentriesEnabled != null) && logentriesEnabled.equals("false")) {
+				this.logentries = null;
+				this.rlog.info(String.format("Deactivated the LOGENTRIES Appender"));
+			} else {
+				final String token = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGENTRIES_TOKEN);
+				if ((token == null) || token.isEmpty()) {
+					this.rlog.error("Missing logentries token but logentries is activated");
+				} else {
+					this.logentries = new LogentriesAppender();
+					this.logentries.setToken(token);
+					this.logentries.setLayout(new JSONLayout());
+					this.logentries.activateOptions();
+					this.rlog.addAppender(this.logentries);
 				}
 			}
 		}
