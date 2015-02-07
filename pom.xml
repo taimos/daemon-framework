@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>de.taimos</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>2</version>
+		<version>4</version>
 	</parent>
 	<artifactId>daemon-framework</artifactId>
 	<packaging>pom</packaging>
@@ -25,8 +25,8 @@
 
 	<!-- Shared version number properties -->
 	<properties>
-		<slf4j.version>1.7.9</slf4j.version>
-		<http.version>1.6</http.version>
+		<slf4j.version>1.7.10</slf4j.version>
+		<http.version>1.7</http.version>
 	</properties>
 	<modules>
 		<module>core</module>

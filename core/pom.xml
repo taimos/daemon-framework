@@ -8,10 +8,6 @@
 	<artifactId>daemon-framework-core</artifactId>
 	<name>Daemon Library</name>
 	<description>Library providing daemon functionality</description>
-	<!-- Shared version number properties -->
-	<properties>
-		<http.version>1.6</http.version>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>de.taimos</groupId>
