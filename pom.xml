@@ -31,6 +31,7 @@
 	<modules>
 		<module>core</module>
 		<module>log4j</module>
+		<module>log-simple</module>
 		<module>spring</module>
 	</modules>
 	<dependencies>
