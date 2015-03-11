@@ -19,6 +19,9 @@ public interface DaemonProperties {
 	@Deprecated
 	public static final String DEVELOPMENT_MODE = "developmentMode";
 	
+	/** the ttl for dns timeouts */
+	public static final String DNS_TTL = "dns.ttl";
+	
 	/** the clazz of the {@link ILoggingConfigurer} */
 	public static final String LOGGER_CONFIGURER = "loggerConfigurer";
 	

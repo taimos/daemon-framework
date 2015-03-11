@@ -167,6 +167,12 @@ public class DaemonStarter {
 		// Load properties
 		DaemonStarter.initProperties();
 		
+		// Configure DNS TTL
+		if (DaemonStarter.getDaemonProperties().getProperty(DaemonProperties.DNS_TTL) != null) {
+			DaemonStarter.rlog.info("Setting JVM DNS TTL: " + DaemonStarter.getDaemonProperties().getProperty(DaemonProperties.DNS_TTL));
+			java.security.Security.setProperty("networkaddress.cache.ttl", DaemonStarter.getDaemonProperties().getProperty(DaemonProperties.DNS_TTL));
+		}
+		
 		// Reconfigure logging with properties
 		try {
 			if (DaemonStarter.loggingConfigurer.get() != null) {
