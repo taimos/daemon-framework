@@ -7,4 +7,4 @@ set svcStarter=de.taimos.myservice.Starter
 @rem DO NOT EDIT BELOW
 
 %svcName%.exe delete
-%svcName%.exe install --DisplayName=%svcFullName% --Description=%svcDesc% --Install="%~dp0%svcName%.exe" --JvmOptions=-DstartupMode=start --Classpath %svcJAR% --Jvm=auto --StartMode=jvm --StopMode=jvm --StartClass=%svcStarter% --StopClass=de.taimos.daemon.DaemonStopper
+%svcName%.exe install --DisplayName=%svcFullName% --Description=%svcDesc% --Install="%~dp0%svcName%.exe" --JvmOptions=-DstartupMode=start ++JvmOptions=-Djava.net.preferIPv4Stack=true --Classpath %svcJAR% --Jvm=auto --StartMode=jvm --StopMode=jvm --StartClass=%svcStarter% --StopClass=de.taimos.daemon.DaemonStopper
