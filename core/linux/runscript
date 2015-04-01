@@ -8,5 +8,4 @@ JAVAARGS=
 # encoding might be broken otherwise
 export LANG=en_US.UTF-8
 
-java -XX:MaxPermSize=128m -Xmx$maxmem -XX:OnOutOfMemoryError='kill -9 %p' -DstartupMode=run -Djava.net.preferIPv4Stack=true $JAVAOPTS -jar $jarfile $JAVAARGS
-		
+exec java -XX:MaxPermSize=128m -Xmx$maxmem -XX:OnOutOfMemoryError='kill -9 %p' -DstartupMode=run -Djava.net.preferIPv4Stack=true $JAVAOPTS -jar $jarfile $JAVAARGS
