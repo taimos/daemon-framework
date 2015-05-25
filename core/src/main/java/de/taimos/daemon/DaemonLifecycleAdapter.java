@@ -76,7 +76,7 @@ public class DaemonLifecycleAdapter implements IDaemonLifecycleListener {
 	/**
 	 * Override to set properties to be used in the daemon without specifying them in the {@link IPropertyProvider}
 	 * 
-	 * @return basic properties
+	 * @param map the map to populate with basic properties
 	 */
 	@SuppressWarnings("unused")
 	protected void loadBasicProperties(Map<String, String> map) {
