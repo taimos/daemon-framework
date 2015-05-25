@@ -30,7 +30,7 @@ public class LogentriesAppender extends AppenderSkeleton {
 	/**
 	 * Sets the token
 	 * 
-	 * @param token
+	 * @param token the logentries token
 	 */
 	public void setToken(String token) {
 		this.le_async.setToken(token);
@@ -49,7 +49,7 @@ public class LogentriesAppender extends AppenderSkeleton {
 	/**
 	 * Determines whether to send HostName alongside with the log message
 	 *
-	 * @param logHostName
+	 * @param logHostName true to log host name
 	 */
 	public void setLogHostName(boolean logHostName) {
 		this.le_async.setLogHostName(logHostName);
@@ -58,7 +58,7 @@ public class LogentriesAppender extends AppenderSkeleton {
 	/**
 	 * Sets the HostName from the configuration
 	 *
-	 * @param hostName
+	 * @param hostName the host name
 	 */
 	public void setHostName(String hostName) {
 		this.le_async.setHostName(hostName);
@@ -67,7 +67,7 @@ public class LogentriesAppender extends AppenderSkeleton {
 	/**
 	 * Sets LogID parameter from the configuration
 	 *
-	 * @param logID
+	 * @param logID the log id
 	 */
 	public void setLogID(String logID) {
 		this.le_async.setLogID(logID);
@@ -76,7 +76,7 @@ public class LogentriesAppender extends AppenderSkeleton {
 	/**
 	 * Implements AppenderSkeleton Append method, handles time and format
 	 * 
-	 * @event event to log
+	 * @param event event to log
 	 */
 	@Override
 	protected void append(LoggingEvent event) {

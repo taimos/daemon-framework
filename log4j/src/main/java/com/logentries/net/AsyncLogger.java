@@ -88,7 +88,7 @@ public class AsyncLogger {
 	/**
 	 * Sets the token
 	 *
-	 * @param token
+	 * @param token the logentries token
 	 */
 	public void setToken(String token) {
 		this.token = token;
@@ -127,7 +127,7 @@ public class AsyncLogger {
 	/**
 	 * Sets value of the switch that determines whether to send HostName alongside with the log message
 	 *
-	 * @param logHostName
+	 * @param logHostName true to send hostname
 	 */
 	public void setLogHostName(boolean logHostName) {
 		this.logHostName = logHostName;
@@ -145,7 +145,7 @@ public class AsyncLogger {
 	/**
 	 * Sets the HostName from configuration
 	 *
-	 * @param hostName
+	 * @param hostName the hostname to set
 	 */
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
@@ -163,7 +163,7 @@ public class AsyncLogger {
 	/**
 	 * Sets LogID parameter from config
 	 *
-	 * @param logID
+	 * @param logID the log id
 	 */
 	public void setLogID(String logID) {
 		this.logID = logID;
