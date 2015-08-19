@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *
  * @author Viliam Holub
  * @author Mark Lacomber
- *
+ * 		
  */
 
 public class AsyncLogger {
@@ -209,7 +209,7 @@ public class AsyncLogger {
 		}
 		
 		try {
-			UUID u = UUID.fromString(uuid);
+			UUID.fromString(uuid);
 		} catch (IllegalArgumentException e) {
 			return false;
 		}
@@ -251,8 +251,8 @@ public class AsyncLogger {
 	 * 
 	 * @param hostName - string containing host name
 	 */
-	boolean checkIfHostNameValid(String hostName) {
-		return !AsyncLogger.HOSTNAME_REGEX.matcher(hostName).find();
+	boolean checkIfHostNameValid(String _hostName) {
+		return !AsyncLogger.HOSTNAME_REGEX.matcher(_hostName).find();
 	}
 	
 	/**
@@ -333,7 +333,7 @@ public class AsyncLogger {
 	 * Asynchronous over the socket appender.
 	 *
 	 * @author Viliam Holub
-	 *
+	 * 		
 	 */
 	class SocketAppender extends Thread {
 		
