@@ -4,6 +4,7 @@
 * add condition annotations for Spring beans
     * `@BeanAvailable`
     * `@OnSystemProperty`
+* add stereotypes `Controller` and `Service` for prod and test
 
 # Version 2.5
 * Spring 4.2.3
