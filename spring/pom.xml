@@ -9,7 +9,7 @@
 	<name>Daemon Library Spring extension</name>
 	<description>Library providing daemon functionality</description>
 	<properties>
-		<org.springframework.version>4.2.3.RELEASE</org.springframework.version>
+		<org.springframework.version>4.2.5.RELEASE</org.springframework.version>
 	</properties>
 	<dependencies>
 		<dependency>
