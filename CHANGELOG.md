@@ -1,3 +1,7 @@
+# Version 2.7
+* Spring 4.2.6
+* configurable test log level
+
 # Version 2.6
 * Spring 4.2.5
 * Slf4j 1.7.21
