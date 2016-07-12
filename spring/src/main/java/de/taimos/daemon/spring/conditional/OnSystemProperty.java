@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Conditional;
 
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(SystemPropertyCondition.class)
 public @interface OnSystemProperty {
