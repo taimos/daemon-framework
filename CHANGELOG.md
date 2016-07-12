@@ -1,3 +1,6 @@
+# Version 2.8
+* Spring 4.3.1
+
 # Version 2.7
 * Spring 4.2.6
 * configurable test log level
