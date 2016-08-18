@@ -1,5 +1,7 @@
 # Version 2.9
 * Spring 4.3.2
+* add condition annotation for Spring beans
+    * `@ClassAvailable`
 
 # Version 2.8
 * Spring 4.3.1
