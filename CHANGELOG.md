@@ -1,3 +1,6 @@
+# Version 2.9
+* Spring 4.3.2
+
 # Version 2.8
 * Spring 4.3.1
 * fix element type of conditional annotations
