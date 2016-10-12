@@ -1,3 +1,6 @@
+# Version 2.10
+* Spring 4.3.3
+
 # Version 2.9
 * Spring 4.3.2
 * add condition annotation for Spring beans
