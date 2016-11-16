@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.net.SyslogAppender;
 
+import com.sumologic.log4j.SumoLogicAppender;
+
 import de.taimos.daemon.DaemonProperties;
 import de.taimos.daemon.DaemonStarter;
 import de.taimos.daemon.ILoggingConfigurer;
@@ -39,6 +41,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 	private DailyRollingFileAppender darofi;
 	private LogglyAppender loggly;
 	private LogentriesAppender logentries;
+	private SumoLogicAppender sumoLogic;
 	private ConsoleAppender console;
 	
 	
@@ -94,6 +97,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 			final String syslogEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_SYSLOG, "true");
 			final String logglyEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_LOGGLY, "false");
 			final String logentriesEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_LOGENTRIES, "false");
+			final String sumologicEnabled = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_SUMOLOGIC, "false");
 			
 			if ((fileEnabled != null) && fileEnabled.equals("false")) {
 				this.rlog.removeAppender(this.darofi);
@@ -152,6 +156,22 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 					this.logentries.setLayout(new JSONLayout());
 					this.logentries.activateOptions();
 					this.rlog.addAppender(this.logentries);
+				}
+			}
+			
+			if ((sumologicEnabled != null) && sumologicEnabled.equals("false")) {
+				this.sumoLogic = null;
+				this.rlog.info(String.format("Deactivated the SUMOLOGIC Appender"));
+			} else {
+				final String url = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SUMOLOGIC_URL);
+				if ((url == null) || url.isEmpty()) {
+					this.rlog.error("Missing SumoLogic url but SumoLogic is activated");
+				} else {
+					this.sumoLogic = new SumoLogicAppender();
+					this.sumoLogic.setUrl(url);
+					this.sumoLogic.setLayout(new JSONLayout());
+					this.sumoLogic.activateOptions();
+					this.rlog.addAppender(this.sumoLogic);
 				}
 			}
 		}

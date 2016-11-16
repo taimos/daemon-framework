@@ -1,23 +1,30 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>de.taimos</groupId>
-		<artifactId>daemon-framework</artifactId>
-		<version>2.11-SNAPSHOT</version>
-	</parent>
-	<artifactId>daemon-framework-log4j</artifactId>
-	<name>Daemon Library Log4j extension</name>
-	<description>Library providing daemon functionality</description>
-	<dependencies>
-		<dependency>
-			<groupId>de.taimos</groupId>
-			<artifactId>daemon-framework-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-	</dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>de.taimos</groupId>
+        <artifactId>daemon-framework</artifactId>
+        <version>2.11-SNAPSHOT</version>
+    </parent>
+    <artifactId>daemon-framework-log4j</artifactId>
+    <name>Daemon Library Log4j extension</name>
+    <description>Library providing daemon functionality</description>
+    <dependencies>
+        <dependency>
+            <groupId>de.taimos</groupId>
+            <artifactId>daemon-framework-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sumologic.plugins.log4j</groupId>
+            <artifactId>sumo-log4j-appender</artifactId>
+            <version>2.4</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 </project>
