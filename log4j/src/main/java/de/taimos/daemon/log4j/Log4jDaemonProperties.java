@@ -43,6 +43,8 @@ public interface Log4jDaemonProperties {
 	String LOGGER_LOGGLY = "logger.loggly";
 	/** true to use {@link LogglyAppender}; false to disable */
 	String LOGGER_LOGENTRIES = "logger.logentries";
+	/** true to use SumoLogicAppender; false to disable */
+	String LOGGER_SUMOLOGIC = "logger.sumologic";
 	
 	/** the log level for syslog (see {@link Level}) */
 	String SYSLOG_LEVEL = "syslog.level";
@@ -58,5 +60,8 @@ public interface Log4jDaemonProperties {
 	
 	/** the log token for logentries.com */
 	String LOGENTRIES_TOKEN = "logentries.token";
+
+	/** the log URL for sumologic.com HTTP endpoint */
+	String SUMOLOGIC_URL = "sumologic.url";
 	
 }

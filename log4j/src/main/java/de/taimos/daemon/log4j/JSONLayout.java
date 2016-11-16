@@ -20,6 +20,7 @@ package de.taimos.daemon.log4j;
  * #L%
  */
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,12 +57,14 @@ public class JSONLayout extends Layout {
 	}
 	
 	private String createJSON(LoggingEvent event) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+		
 		Map<String, Object> log = new HashMap<>();
 		log.put("daemon", DaemonStarter.getDaemonName());
 		log.put("instance", DaemonStarter.getInstanceId());
 		log.put("host", DaemonStarter.getHostname());
 		log.put("phase", DaemonStarter.getCurrentPhase().name());
-		log.put("timestamp", new Date(event.getTimeStamp()).toString());
+		log.put("timestamp", sdf.format(new Date(event.getTimeStamp())));
 		log.put("level", event.getLevel().toString());
 		log.put("source", event.getLoggerName());
 		log.put("message", event.getRenderedMessage());
@@ -69,7 +72,7 @@ public class JSONLayout extends Layout {
 		
 		if (event.getThrowableInformation() != null) {
 			Throwable throwable = event.getThrowableInformation().getThrowable();
-			List<String> stacktrace = new ArrayList<String>();
+			List<String> stacktrace = new ArrayList<>();
 			log.put("throwable", throwable.toString());
 			for (StackTraceElement ste : throwable.getStackTrace()) {
 				stacktrace.add(ste.toString());
