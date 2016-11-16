@@ -1,44 +1,47 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>de.taimos</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>5</version>
-	</parent>
-	<artifactId>daemon-framework</artifactId>
-	<packaging>pom</packaging>
-	<version>2.11-SNAPSHOT</version>
-	<name>Daemon Library</name>
-	<description>Library providing daemon functionality</description>
-	<url>https://github.com/taimos/daemon-framework</url>
-	<inceptionYear>2012</inceptionYear>
-	<scm>
-		<connection>scm:git:git@github.com:taimos/daemon-framework.git</connection>
-		<developerConnection>scm:git:git@github.com:taimos/daemon-framework.git</developerConnection>
-		<url>scm:git:git@github.com:taimos/daemon-framework.git</url>
-		<tag>HEAD</tag>
-	</scm>
-	<issueManagement>
-		<system>github</system>
-		<url>https://github.com/taimos/daemon-framework/issues</url>
-	</issueManagement>
-
-	<!-- Shared version number properties -->
-	<properties>
-		<slf4j.version>1.7.21</slf4j.version>
-		<http.version>1.10</http.version>
-	</properties>
-	<modules>
-		<module>core</module>
-		<module>log4j</module>
-		<module>log-simple</module>
-		<module>spring</module>
-	</modules>
-	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-	</dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>de.taimos</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>5</version>
+    </parent>
+    <artifactId>daemon-framework</artifactId>
+    <packaging>pom</packaging>
+    <version>2.11-SNAPSHOT</version>
+    <name>Daemon Library</name>
+    <description>Library providing daemon functionality</description>
+    <url>https://github.com/taimos/daemon-framework</url>
+    <inceptionYear>2012</inceptionYear>
+    <scm>
+        <connection>scm:git:git@github.com:taimos/daemon-framework.git</connection>
+        <developerConnection>scm:git:git@github.com:taimos/daemon-framework.git</developerConnection>
+        <url>scm:git:git@github.com:taimos/daemon-framework.git</url>
+        <tag>HEAD</tag>
+    </scm>
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/taimos/daemon-framework/issues</url>
+    </issueManagement>
+    <prerequisites>
+        <maven>3.3.9</maven>
+    </prerequisites>
+    <!-- Shared version number properties -->
+    <properties>
+        <slf4j.version>1.7.21</slf4j.version>
+        <http.version>1.10</http.version>
+    </properties>
+    <modules>
+        <module>core</module>
+        <module>log4j</module>
+        <module>log-simple</module>
+        <module>spring</module>
+    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+    </dependencies>
 </project>

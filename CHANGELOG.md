@@ -1,3 +1,6 @@
+# Version 2.11
+* Spring 4.3.4
+
 # Version 2.10
 * Spring 4.3.3
 
