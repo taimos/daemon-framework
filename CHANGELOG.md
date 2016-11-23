@@ -1,3 +1,6 @@
+# Version 2.12
+* make log layout configurable (logger.layout = pattern|json)
+
 # Version 2.11
 * Spring 4.3.4
 * add log appender for SumoLogic

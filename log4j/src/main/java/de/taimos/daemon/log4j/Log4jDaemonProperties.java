@@ -35,6 +35,13 @@ public interface Log4jDaemonProperties {
 	/** the logger pattern */
 	String LOGGER_PATTERN = "logger.pattern";
 	
+	/** the logger layout */
+	String LOGGER_LAYOUT = "logger.layout";
+	/** the logger layout - Pattern */
+	String LOGGER_LAYOUT_PATTERN = "pattern";
+	/** the logger layout - JSON */
+	String LOGGER_LAYOUT_JSON = "json";
+	
 	/** true to use {@link FileAppender}; false to disable */
 	String LOGGER_FILE = "logger.file";
 	/** true to use {@link SyslogAppender}; false to disable */

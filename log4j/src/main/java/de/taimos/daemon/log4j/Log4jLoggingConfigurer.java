@@ -22,6 +22,7 @@ package de.taimos.daemon.log4j;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
@@ -39,11 +40,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 	
 	private SyslogAppender syslog;
 	private DailyRollingFileAppender darofi;
-	private LogglyAppender loggly;
-	private LogentriesAppender logentries;
-	private SumoLogicAppender sumoLogic;
 	private ConsoleAppender console;
-	
 	
 	@Override
 	public void initializeLogging() throws Exception {
@@ -88,7 +85,6 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 	@Override
 	public void reconfigureLogging() throws Exception {
 		final Level logLevel = Level.toLevel(DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGER_LEVEL), Level.INFO);
-		final String logPattern = System.getProperty(Log4jDaemonProperties.LOGGER_PATTERN, "%d{HH:mm:ss,SSS} %-5p %c %x - %m%n");
 		this.rlog.setLevel(logLevel);
 		this.rlog.info(String.format("Changed the the log level to %s", logLevel));
 		
@@ -102,17 +98,17 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 			if ((fileEnabled != null) && fileEnabled.equals("false")) {
 				this.rlog.removeAppender(this.darofi);
 				this.darofi = null;
-				this.rlog.info(String.format("Deactivated the FILE Appender"));
+				this.rlog.info("Deactivated the FILE Appender");
 			} else {
 				this.darofi.setThreshold(logLevel);
-				this.darofi.setLayout(new PatternLayout(logPattern));
+				this.darofi.setLayout(this.getLayout());
 				this.darofi.activateOptions();
 			}
 			
 			if ((syslogEnabled != null) && syslogEnabled.equals("false")) {
 				this.rlog.removeAppender(this.syslog);
 				this.syslog = null;
-				this.rlog.info(String.format("Deactivated the SYSLOG Appender"));
+				this.rlog.info("Deactivated the SYSLOG Appender");
 			} else {
 				final String host = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_HOST, "localhost");
 				final String facility = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SYSLOG_FACILITY, "LOCAL0");
@@ -126,59 +122,69 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 			}
 			
 			if ((logglyEnabled != null) && logglyEnabled.equals("false")) {
-				this.loggly = null;
-				this.rlog.info(String.format("Deactivated the LOGGLY Appender"));
+				this.rlog.info("Deactivated the LOGGLY Appender");
 			} else {
 				final String token = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGLY_TOKEN);
 				if ((token == null) || token.isEmpty()) {
 					this.rlog.error("Missing loggly token but loggly is activated");
 				} else {
 					final String tags = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGGLY_TAGS);
-					this.loggly = new LogglyAppender();
-					this.loggly.setToken(token);
-					this.loggly.setTags(tags);
-					this.loggly.setLayout(new JSONLayout());
-					this.loggly.activateOptions();
-					this.rlog.addAppender(this.loggly);
+					LogglyAppender loggly = new LogglyAppender();
+					loggly.setToken(token);
+					loggly.setTags(tags);
+					loggly.setLayout(this.getLayout());
+					loggly.activateOptions();
+					this.rlog.addAppender(loggly);
 				}
 			}
 			
 			if ((logentriesEnabled != null) && logentriesEnabled.equals("false")) {
-				this.logentries = null;
-				this.rlog.info(String.format("Deactivated the LOGENTRIES Appender"));
+				this.rlog.info("Deactivated the LOGENTRIES Appender");
 			} else {
 				final String token = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.LOGENTRIES_TOKEN);
 				if ((token == null) || token.isEmpty()) {
 					this.rlog.error("Missing logentries token but logentries is activated");
 				} else {
-					this.logentries = new LogentriesAppender();
-					this.logentries.setToken(token);
-					this.logentries.setLayout(new JSONLayout());
-					this.logentries.activateOptions();
-					this.rlog.addAppender(this.logentries);
+					LogentriesAppender logentries = new LogentriesAppender();
+					logentries.setToken(token);
+					logentries.setLayout(this.getLayout());
+					logentries.activateOptions();
+					this.rlog.addAppender(logentries);
 				}
 			}
 			
 			if ((sumologicEnabled != null) && sumologicEnabled.equals("false")) {
-				this.sumoLogic = null;
-				this.rlog.info(String.format("Deactivated the SUMOLOGIC Appender"));
+				this.rlog.info("Deactivated the SUMOLOGIC Appender");
 			} else {
 				final String url = DaemonStarter.getDaemonProperties().getProperty(Log4jDaemonProperties.SUMOLOGIC_URL);
 				if ((url == null) || url.isEmpty()) {
 					this.rlog.error("Missing SumoLogic url but SumoLogic is activated");
 				} else {
-					this.sumoLogic = new SumoLogicAppender();
-					this.sumoLogic.setUrl(url);
-					this.sumoLogic.setLayout(new JSONLayout());
-					this.sumoLogic.activateOptions();
-					this.rlog.addAppender(this.sumoLogic);
+					SumoLogicAppender sumoLogic = new SumoLogicAppender();
+					sumoLogic.setUrl(url);
+					sumoLogic.setLayout(this.getLayout());
+					sumoLogic.activateOptions();
+					this.rlog.addAppender(sumoLogic);
 				}
 			}
 		}
 		if (DaemonStarter.isDevelopmentMode() || DaemonStarter.isRunMode()) {
-			this.console.setLayout(new PatternLayout(logPattern));
+			this.console.setLayout(this.getLayout());
 			this.console.setThreshold(logLevel);
 			this.console.activateOptions();
+		}
+	}
+	
+	private Layout getLayout() {
+		final String logLayout = System.getProperty(Log4jDaemonProperties.LOGGER_LAYOUT, Log4jDaemonProperties.LOGGER_LAYOUT_PATTERN);
+		
+		switch (logLayout) {
+		case Log4jDaemonProperties.LOGGER_LAYOUT_JSON:
+			return new JSONLayout();
+		case Log4jDaemonProperties.LOGGER_LAYOUT_PATTERN:
+		default:
+			final String logPattern = System.getProperty(Log4jDaemonProperties.LOGGER_PATTERN, "%d{HH:mm:ss,SSS} %-5p %c %x - %m%n");
+			return new PatternLayout(logPattern);
 		}
 	}
 	
@@ -188,7 +194,7 @@ public class Log4jLoggingConfigurer implements ILoggingConfigurer {
 		this.rlog.removeAllAppenders();
 		final Level logLevel = Level.toLevel(System.getProperty(Log4jDaemonProperties.LOGGER_LEVEL), Level.INFO);
 		this.rlog.setLevel(logLevel);
-
+		
 		this.console = new ConsoleAppender();
 		this.console.setName("CONSOLE");
 		this.console.setLayout(new PatternLayout("%d{HH:mm:ss,SSS} %-5p %c %x - %m%n"));
