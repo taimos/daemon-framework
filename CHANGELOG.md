@@ -1,3 +1,8 @@
+# Version 2.13
+* Spring 4.3.5
+* Slf4j 1.7.22
+* add causing exceptions to stacktrace
+
 # Version 2.12
 * make log layout configurable (logger.layout = pattern|json)
 

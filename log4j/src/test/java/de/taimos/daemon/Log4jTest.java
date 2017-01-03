@@ -36,6 +36,7 @@ public class Log4jTest extends DaemonLifecycleAdapter {
 	
 	public static void main(String[] args) {
 		System.setProperty(DaemonProperties.STARTUP_MODE, DaemonProperties.STARTUP_MODE_RUN);
+//		System.setProperty(Log4jDaemonProperties.LOGGER_LAYOUT, Log4jDaemonProperties.LOGGER_LAYOUT_JSON);
 		Log4jLoggingConfigurer.setup();
 		DaemonStarter.startDaemon("foobar", new Log4jTest());
 		
@@ -53,7 +54,7 @@ public class Log4jTest extends DaemonLifecycleAdapter {
 		
 		Log4jTest.LOGGER.info("Message");
 		Log4jTest.LOGGER.info("Message with \"quote\" in text");
-		Log4jTest.LOGGER.warn("Warning", new RuntimeException("Failed"));
+		Log4jTest.LOGGER.warn("Warning", new RuntimeException("Failed", new IllegalArgumentException("Causing exception")));
 		
 		MDC.put("requestID", UUID.randomUUID().toString());
 		Log4jTest.LOGGER.info("Request");

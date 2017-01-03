@@ -72,12 +72,8 @@ public class JSONLayout extends Layout {
 		
 		if (event.getThrowableInformation() != null) {
 			Throwable throwable = event.getThrowableInformation().getThrowable();
-			List<String> stacktrace = new ArrayList<>();
 			log.put("throwable", throwable.toString());
-			for (StackTraceElement ste : throwable.getStackTrace()) {
-				stacktrace.add(ste.toString());
-			}
-			log.put("stacktrace", stacktrace);
+			log.put("stacktrace", this.getStacktrace(throwable));
 		}
 		if (event.getProperties() != null) {
 			log.put("mdc", event.getProperties());
@@ -86,6 +82,18 @@ public class JSONLayout extends Layout {
 		this.addObject(sb, log);
 		sb.append(Layout.LINE_SEP);
 		return sb.toString();
+	}
+	
+	private List<String> getStacktrace(Throwable throwable) {
+		List<String> stacktrace = new ArrayList<>();
+		for (StackTraceElement ste : throwable.getStackTrace()) {
+			stacktrace.add(ste.toString());
+		}
+		if (throwable.getCause() != null) {
+			stacktrace.add("Caused By: " + throwable.getCause().toString());
+			stacktrace.addAll(this.getStacktrace(throwable.getCause()));
+		}
+		return stacktrace;
 	}
 	
 	private void addObject(StringBuilder sb, Map<String, Object> map) {

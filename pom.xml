@@ -27,7 +27,7 @@
     </prerequisites>
     <!-- Shared version number properties -->
     <properties>
-        <slf4j.version>1.7.21</slf4j.version>
+        <slf4j.version>1.7.22</slf4j.version>
         <http.version>1.10</http.version>
     </properties>
     <modules>
