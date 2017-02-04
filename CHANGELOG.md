@@ -1,3 +1,6 @@
+# Version 2.14
+* Spring 4.3.6
+
 # Version 2.13
 * Spring 4.3.5
 * Slf4j 1.7.22
