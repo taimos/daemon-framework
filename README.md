@@ -3,6 +3,7 @@
 Little framework to create Java programs that behave like Linux daemons/Windows services.
 
 [![Build Status](https://travis-ci.org/taimos/daemon-framework.png)](https://travis-ci.org/taimos/daemon-framework)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.taimos/daemon-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.taimos/daemon-framework)
 
 # Getting started
 
@@ -18,7 +19,7 @@ There are three different startup modes which can be specified with ``-DstartupM
 - run: intended for foreground daemons
 - dev: start in development mode
 
-The default mode is ``dev``. If you want to run the program in _prodcution mode_ make sure you start it with ``-DstartupMode=start`` or ``-DstartupMode=run``.
+The default mode is ``dev``. If you want to run the program in _production mode_ make sure you start it with ``-DstartupMode=start`` or ``-DstartupMode=run``.
 
 In start mode the console logging is disabled.
 

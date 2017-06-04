@@ -28,10 +28,17 @@ import de.taimos.httputils.WS;
 
 public class CloudConductorPropertyProvider extends HTTPPropertyProvider {
 	
+	public static final String CLOUDCONDUCTOR_URL = "CLOUDCONDUCTOR_URL";
+	public static final String TEMPLATE_NAME = "TEMPLATE_NAME";
+	
 	private String server;
 	private String template;
 	
 	
+	public CloudConductorPropertyProvider() {
+		this(System.getenv(CLOUDCONDUCTOR_URL), System.getenv(TEMPLATE_NAME));
+	}
+
 	public CloudConductorPropertyProvider(String server, String template) {
 		this.server = server;
 		this.template = template;

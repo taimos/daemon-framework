@@ -1,5 +1,7 @@
 # Version 2.14
-* Spring 4.3.6
+* Spring 4.3.8
+* Slf4j 1.7.25
+* HTTPUtils 1.11
 
 # Version 2.13
 * Spring 4.3.5
