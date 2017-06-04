@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>de.taimos</groupId>
 		<artifactId>daemon-framework</artifactId>
-		<version>2.14-SNAPSHOT</version>
+		<version>2.14</version>
 	</parent>
 	<artifactId>daemon-framework-spring</artifactId>
 	<name>Daemon Library Spring extension</name>
