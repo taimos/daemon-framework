@@ -1,3 +1,7 @@
+# Version 2.15
+* Spring 4.3.14
+* support for CloudConductor 3.x
+
 # Version 2.14
 * Spring 4.3.8
 * Slf4j 1.7.25
